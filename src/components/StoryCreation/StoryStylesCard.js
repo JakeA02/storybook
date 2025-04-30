@@ -24,12 +24,13 @@ export default function StoryStylesCard({ onClose }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {styles.map((style) => (
           <div key={style.id} className="style-example">
-            <div className="bg-gradient-to-br from-sky-100 to-rose-100 aspect-square rounded-md flex items-center justify-center border border-sky-200 shadow-sm">
+            <div className="bg-gradient-to-br from-sky-100 to-rose-100 aspect-square rounded-lg flex items-center justify-center border border-sky-200">
               <img
                 src={`/images/${style.id}CartoonSoccer.png`}
                 alt={style.name}
                 width={100}
                 height={100}
+                className="rounded-md"
               />
             </div>
             <p className="text-center text-sm mt-1 font-story text-sky-600">

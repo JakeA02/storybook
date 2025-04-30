@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import StoryStylesCard from './StoryStylesCard';
+import { useState } from "react";
+import StoryStylesCard from "./StoryStylesCard";
 
 export default function StoryDetailsForm({ onSubmit, onBack }) {
   const [formData, setFormData] = useState({
-    childName: '',
-    lesson: '',
-    childLikes: '',
-    cartoonStyle: ''
+    childName: "",
+    lesson: "",
+    childLikes: "",
+    cartoonStyle: "",
   });
   const [showStylesCard, setShowStylesCard] = useState(false);
 
@@ -31,7 +31,8 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
   };
 
   // Check if required fields are filled
-  const isFormValid = formData.childName && formData.childLikes && formData.cartoonStyle;
+  const isFormValid =
+    formData.childName && formData.childLikes && formData.cartoonStyle;
 
   const styles = [
     { name: "Disney", id: "disney" },
@@ -43,9 +44,7 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
 
   return (
     <div className="card-transition-container">
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        Story Details
-      </h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Story Details</h2>
       <p className="text-center mb-6 font-story">
         Let's personalize your story
       </p>
@@ -69,7 +68,8 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
 
         <div className="form-group">
           <label htmlFor="lesson" className="block text-sm font-medium mb-1">
-            Lesson of the Story <span className="text-gray-400 text-xs">(optional)</span>
+            Lesson of the Story{" "}
+            <span className="text-gray-400 text-xs">(optional)</span>
           </label>
           <input
             type="text"
@@ -83,7 +83,10 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="childLikes" className="block text-sm font-medium mb-1">
+          <label
+            htmlFor="childLikes"
+            className="block text-sm font-medium mb-1"
+          >
             What Your Child Likes*
           </label>
           <textarea
@@ -104,21 +107,26 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {styles.map((style) => (
-              <div 
-                key={style.id} 
-                className={`style-example cursor-pointer transition-all duration-200 ${
-                  formData.cartoonStyle === style.id ? 
-                  'ring-2 ring-green-500 scale-105' : 
-                  'hover:scale-102'
+              <div
+                key={style.id}
+                className={`style-example cursor-pointer transition-all duration-200 rounded-lg ${
+                  formData.cartoonStyle === style.id
+                    ? 
+                      "ring-2 ring-offset-1 ring-green-500 scale-105"
+                    : "hover:scale-102"
                 }`}
                 onClick={() => handleStyleSelect(style.id)}
               >
-                <div className="bg-gradient-to-br from-sky-100 to-rose-100 aspect-square rounded-md flex items-center justify-center border border-sky-200 shadow-sm">
+                {/* MODIFIED: Changed rounded-md to rounded-lg, removed shadow-sm */}
+                <div className="bg-gradient-to-br from-sky-100 to-rose-100 aspect-square rounded-lg flex items-center justify-center border border-sky-200">
                   <img
-                    src={`/images/${style.id.charAt(0).toUpperCase() + style.id.slice(1)}CartoonSoccer.png`}
+                    src={`/images/${
+                      style.id.charAt(0).toUpperCase() + style.id.slice(1)
+                    }CartoonSoccer.png`}
                     alt={style.name}
                     width={100}
                     height={100}
+                    className="rounded-md"
                   />
                 </div>
                 <p className="text-center text-sm mt-1 font-story text-sky-600">
@@ -150,4 +158,4 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
       </form>
     </div>
   );
-} 
+}
