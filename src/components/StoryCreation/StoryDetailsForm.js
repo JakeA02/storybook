@@ -18,6 +18,13 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
     }));
   };
 
+  const handleStyleSelect = (styleId) => {
+    setFormData((prev) => ({
+      ...prev,
+      cartoonStyle: styleId.toLowerCase(),
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
@@ -25,6 +32,14 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
 
   // Check if required fields are filled
   const isFormValid = formData.childName && formData.childLikes && formData.cartoonStyle;
+
+  const styles = [
+    { name: "Disney", id: "disney" },
+    { name: "Dr. Seuss", id: "seuss" },
+    { name: "Anime", id: "anime" },
+    { name: "Modern Cartoon", id: "modern" },
+    { name: "Ghibli", id: "ghibli" },
+  ];
 
   return (
     <div className="card-transition-container">
@@ -84,34 +99,35 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="cartoonStyle" className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium mb-2">
             Cartoon Style*
           </label>
-          <select
-            id="cartoonStyle"
-            name="cartoonStyle"
-            value={formData.cartoonStyle}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
-            required
-          >
-            <option value="">Select Cartoon Style</option>
-            <option value="disney">Disney</option>
-            <option value="seuss">Dr. Seuss</option>
-            <option value="watercolor">Watercolor</option>
-            <option value="modern-cartoon">Modern Cartoon</option>
-            <option value="ghibli">Ghibli</option>
-          </select>
-          <button 
-            type="button"
-            className="text-primary underline text-sm mt-1 hover:text-primary-dark focus:outline-none"
-            onClick={() => setShowStylesCard(!showStylesCard)}
-          >
-            {showStylesCard ? "Hide story styles" : "Show story styles"}
-          </button>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {styles.map((style) => (
+              <div 
+                key={style.id} 
+                className={`style-example cursor-pointer transition-all duration-200 ${
+                  formData.cartoonStyle === style.id ? 
+                  'ring-2 ring-green-500 scale-105' : 
+                  'hover:scale-102'
+                }`}
+                onClick={() => handleStyleSelect(style.id)}
+              >
+                <div className="bg-gradient-to-br from-sky-100 to-rose-100 aspect-square rounded-md flex items-center justify-center border border-sky-200 shadow-sm">
+                  <img
+                    src={`/images/${style.id.charAt(0).toUpperCase() + style.id.slice(1)}CartoonSoccer.png`}
+                    alt={style.name}
+                    width={100}
+                    height={100}
+                  />
+                </div>
+                <p className="text-center text-sm mt-1 font-story text-sky-600">
+                  {style.name}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-
-        {showStylesCard && <StoryStylesCard onClose={() => setShowStylesCard(false)} />}
 
         <div className="mt-8 flex justify-between">
           <button
