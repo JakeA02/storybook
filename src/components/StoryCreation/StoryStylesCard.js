@@ -2,11 +2,11 @@ import React from "react";
 
 export default function StoryStylesCard({ onClose }) {
   const styles = [
-    { name: "Disney", id: "disney" },
-    { name: "Dr. Seuss", id: "seuss" },
-    { name: "Watercolor", id: "watercolor" },
-    { name: "Modern Cartoon", id: "modern-cartoon" },
-    { name: "Ghibli", id: "ghibli" },
+    { name: "Disney", id: "Disney" },
+    { name: "Dr. Seuss", id: "Seuss" },
+    { name: "Anime", id: "Anime" },
+    { name: "Modern Cartoon", id: "Modern" },
+    { name: "Ghibli", id: "Ghibli" },
   ];
 
   return (
@@ -25,10 +25,12 @@ export default function StoryStylesCard({ onClose }) {
         {styles.map((style) => (
           <div key={style.id} className="style-example">
             <div className="bg-gradient-to-br from-sky-100 to-rose-100 aspect-square rounded-md flex items-center justify-center border border-sky-200 shadow-sm">
-              {/* Image placeholder - will be replaced with actual images */}
-              <span className="text-sky-500 text-xs font-medium">
-                Image for {style.name}
-              </span>
+              <img
+                src={`/images/${style.id}CartoonSoccer.png`}
+                alt={style.name}
+                width={100}
+                height={100}
+              />
             </div>
             <p className="text-center text-sm mt-1 font-story text-sky-600">
               {style.name}
