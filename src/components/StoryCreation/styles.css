@@ -1,0 +1,105 @@
+/* Story Creation Styles */
+
+.story-creation-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  transition: all 0.3s ease-in-out;
+}
+
+.card-transition-container {
+  background-color: var(--color-card);
+  border-radius: var(--rounded-card);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.5s forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Option Cards */
+.option-card {
+  background-color: var(--color-card);
+  border: 2px solid var(--color-border);
+  border-radius: var(--rounded-card);
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.option-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Upload Area */
+.upload-area {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--rounded-card);
+  padding: 2rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(56, 189, 248, 0.05);
+}
+
+.upload-area.has-preview {
+  background-color: white;
+  border-style: solid;
+  border-color: var(--color-primary);
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-image {
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Form styling */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+input, select {
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .card-transition-container {
+    padding: 1.5rem;
+  }
+} 
