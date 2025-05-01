@@ -32,11 +32,15 @@ export default function StoryScriptGenerator({ onComplete }) {
     }
   };
 
-  const handleComplete = () => {
-    if (script) {
+  const handleComplete = (editedScript) => {
+    // If editedScript is passed directly from ScriptDisplay, use it
+    // Otherwise use the stored script
+    const finalScript = typeof editedScript === 'string' ? editedScript : script;
+    
+    if (finalScript) {
       onComplete({
         ...storyDetails,
-        script: script,
+        script: finalScript,
         childData: childData.data,
       });
     } else {
