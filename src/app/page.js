@@ -8,14 +8,9 @@ import "./globals.css";
 
 export default function Home() {
   const [isCreatingStory, setIsCreatingStory] = useState(false);
-  const [storyData, setStoryData] = useState(null);
 
   const handleStartStoryCreation = () => {
     setIsCreatingStory(true);
-  };
-
-  const handleStoryCreationComplete = (data) => {
-    setStoryData(data);
   };
 
   return (
@@ -77,7 +72,7 @@ export default function Home() {
         </main>
       ) : (
         <StoryProvider>
-          <StoryCreationContainer onComplete={handleStoryCreationComplete} />
+          <StoryCreationContainer />
         </StoryProvider>
       )}
     </div>
