@@ -1,10 +1,12 @@
+/* Import Tailwind base, components, and utilities */
 @import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Global Styles */
+/* Custom Global Styles using CSS Variables */
 :root {
+  /* Light Theme Colors */
   --color-bg: #f9fafb;         /* Tailwind's gray-50 */
   --color-text: #1f2937;       /* Tailwind's gray-800 */
   --color-muted: #6b7280;      /* Tailwind's gray-500 */
@@ -12,61 +14,33 @@
   --color-primary-hover: #0ea5e9; /* Tailwind's sky-500 */
   --color-secondary: #fb7185;  /* Tailwind's rose-400 */
   --color-accent: #fcd34d;     /* Tailwind's amber-300 */
-  --color-card: #ffffff;       /* white background for content */
-  --color-border: #e5e7eb;     /* gray-200 */
-  --rounded-card: 1rem;
-  --font-body: 'Inter', sans-serif;
-  --font-heading: 'DM Serif Display', serif;
+  --color-card: #ffffff;       /* White */
+  --color-border: #e5e7eb;     /* Tailwind's gray-200 */
+  --color-error: #ef4444;      /* Tailwind's red-500 */
+
+  /* Layout & Font Variables */
+  --rounded-card: 1rem;        /* 16px */
+  --font-body: 'Inter', sans-serif; /* Example body font */
+  --font-heading: 'DM Serif Display', serif; /* Example heading font */
+  --font-story: 'Comic Sans MS', 'Comic Neue', cursive; /* Example storybook font - CHOOSE A SUITABLE FONT */
 }
 
-/* Custom utility classes */
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Dark Theme Colors (Optional - using prefers-color-scheme) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1a1a2e;
-    --foreground: #f1f1f8;
-    --color-bg: #1a1a2e;
-    --color-text: #f1f1f8;
-    --color-card: #2d3748;
-    --color-border: #4a5568;
+    --color-bg: #1a1a2e;          /* Dark background */
+    --color-text: #f1f1f8;        /* Light text */
+    --color-muted: #a0aec0;       /* Tailwind's gray-400 (example) */
+    /* Primary/Secondary might need adjustment for contrast */
+    /* --color-primary: #60a5fa; */  /* Example adjusted blue */
+    /* --color-secondary: #f472b6; */ /* Example adjusted pink */
+    --color-card: #2d3748;        /* Tailwind's gray-800 (example) */
+    --color-border: #4a5568;      /* Tailwind's gray-600 (example) */
+    --color-error: #f87171;       /* Tailwind's red-400 */
   }
 }
 
-h1, h2, h3, h4 {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-a {
-  color: var(--color-primary);
-  text-decoration: none;
-}
-
-a:hover {
-  color: var(--color-primary-hover);
-}
-
-button {
-  font-family: var(--font-body);
-  font-weight: 600;
-}
-
-.card {
-  background-color: var(--color-card);
-  border-radius: var(--rounded-card);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  padding: 2rem;
-  border: 1px solid var(--color-border);
-}
-
+/* Base HTML Element Styling */
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
@@ -75,29 +49,58 @@ body {
   font-size: 16px;
 }
 
-/* Children's book specific styling */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600; /* Adjust as needed */
+  color: var(--color-text);
+  margin-bottom: 0.75em; /* Default spacing */
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+button {
+  font-family: var(--font-body);
+  font-weight: 600; /* Or 500 for medium */
+  cursor: pointer;
+  /* Base button styles can be added here if not using Tailwind classes extensively */
+}
+
+/* Custom Utility Classes (using Tailwind's @layer components if preferred) */
+.card {
+  background-color: var(--color-card);
+  border-radius: var(--rounded-card);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem; /* 32px */
+  border: 1px solid var(--color-border);
+}
+
+/* Children's Book Specific Styling */
 .font-story {
   font-family: var(--font-story);
 }
 
-.text-primary {
-  color: var(--color-primary);
-}
+/* Text color utilities (matching :root variables) */
+.text-primary { color: var(--color-primary); }
+.text-secondary { color: var(--color-secondary); }
+.text-muted { color: var(--color-muted); }
+.text-red-500 { color: var(--color-error); } /* Assuming you map Tailwind colors */
 
-.text-secondary {
-  color: var(--color-secondary);
-}
+.border-primary { border-color: var(--color-primary); }
+.border-secondary { border-color: var(--color-secondary); }
 
-.text-muted {
-  color: var(--color-muted);
-}
+.bg-primary { background-color: var(--color-primary); }
+.bg-primary-hover:hover { background-color: var(--color-primary-hover); }
 
-.border-secondary {
-  border-color: var(--color-secondary);
-}
 
-/* Background pattern for a playful look */
-/* Float animations for decorative elements */
+/* Float animations for decorative elements (as seen in Home.js) */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -110,14 +113,221 @@ body {
   100% { transform: translateY(0px) translateX(0px); }
 }
 
-.animate-float {
-  animation: float 5s ease-in-out infinite;
+/* Apply animations via utility classes */
+.animate-float { animation: float 5s ease-in-out infinite; }
+.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
+.animate-float-delay { animation: float 6s ease-in-out 1s infinite; } /* Example with delay */
+
+
+/* Story Creation Specific Styles */
+
+.story-creation-container {
+  width: 100%;
+  max-width: 800px; /* Max width for the whole process */
+  margin: 2rem auto; /* Center with some vertical margin */
+  transition: all 0.3s ease-in-out;
 }
 
-.animate-float-slow {
-  animation: float-slow 8s ease-in-out infinite;
+/* Card transition animation */
+.card-transition-container {
+  /* Assuming this class is applied to the card needing animation */
+  background-color: var(--color-card);
+  border-radius: var(--rounded-card);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem; /* Consistent padding */
+  border: 1px solid var(--color-border);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.5s ease-out forwards;
 }
 
-.animate-float-delay {
-  animation: float 6s ease-in-out 1s infinite;
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Option Cards (If used in other steps) */
+.option-card {
+  background-color: var(--color-card);
+  border: 2px solid var(--color-border);
+  border-radius: var(--rounded-card);
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-align: center;
+}
+
+.option-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(56, 189, 248, 0.15); /* Primary color shadow */
+}
+
+/* Upload Area (If used in other steps) */
+.upload-area {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--rounded-card);
+  padding: 2rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.02); /* Subtle background */
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  min-height: 150px; /* Adjust as needed */
+  display: flex;
+  flex-direction: column; /* Center content vertically */
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(56, 189, 248, 0.05); /* Light primary bg on hover */
+}
+
+.upload-area.has-preview {
+  border-style: solid;
+  border-color: var(--color-primary);
+  background-color: var(--color-card); /* White background when previewing */
+  padding: 1rem; /* Adjust padding for preview */
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem; /* Space between image and text/button */
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 150px; /* Limit preview image height */
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.5rem; /* Space below image */
+}
+
+/* Form Styling (General) */
+.form-group {
+  margin-bottom: 1.5rem; /* More spacing between form groups */
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+input[type="text"],
+input[type="email"], /* Add other input types as needed */
+select,
+textarea {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem; /* Comfortable padding */
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem; /* Slightly rounded inputs */
+  font-family: var(--font-body);
+  font-size: 1rem;
+  background-color: var(--color-card); /* Match card background */
+  color: var(--color-text);
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3); /* Focus ring */
+}
+
+/* Loading Animation */
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.5rem; /* Ensure container has height */
+}
+
+.loading-dots span {
+  display: inline-block;
+  width: 0.75rem;  /* 12px */
+  height: 0.75rem; /* 12px */
+  margin: 0 0.25rem; /* 4px */
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  animation: loadingDot 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots span:nth-child(3) { animation-delay: 0s; } /* Ensure third dot animates */
+
+@keyframes loadingDot {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1.0); }
+}
+
+/* Story Script Card Styling */
+.script-card {
+  background-color: #fffbeb; /* Tailwind's amber-50 - warmer background */
+  border-radius: var(--rounded-card);
+  border-left: 5px solid var(--color-secondary); /* Thicker accent border */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem 2rem; /* More horizontal padding */
+  margin-bottom: 1.5rem;
+  font-family: var(--font-story); /* Apply story font */
+  color: #5c4033; /* Darker brown/sepia text color */
+}
+
+.stanza {
+  margin-bottom: 1.25rem; /* Slightly more space between stanzas */
+  line-height: 1.7;     /* Increase line height for readability */
+  white-space: pre-line; /* Preserves line breaks from the API response */
+}
+
+.text-story {
+  color: #5c4033; /* Darker brown/sepia text color from .script-card */
+}
+
+.border-secondary {
+  border-color: var(--color-secondary); /* Tailwind's rose-400 */
+}
+
+/* Optional: A border color that fits the amber theme */
+.border-amber-200 {
+    border-color: #fef3c7; /* Tailwind's amber-200 */
+}
+.border-amber-300 {
+    border-color: #fcd34d; /* Tailwind's amber-300 */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  /* Adjust padding on smaller screens */
+  .card,
+  .card-transition-container {
+    padding: 1.5rem;
+  }
+
+  h1 { font-size: 2rem; } /* Adjust heading sizes */
+  h2 { font-size: 1.5rem; }
+
+  .script-card {
+    padding: 1rem 1.5rem;
+  }
+
+  /* Stack buttons in the script view */
+  .mt-8.flex.justify-between {
+     flex-direction: column;
+     gap: 0.75rem; /* Add space between stacked buttons */
+  }
+   .mt-8.flex.justify-between > button {
+      width: 100%; /* Make buttons full width when stacked */
+   }
 }
