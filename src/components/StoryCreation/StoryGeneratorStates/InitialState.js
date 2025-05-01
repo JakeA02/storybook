@@ -19,8 +19,8 @@ export default function InitialState({ onBack, onGenerate }) {
         </button>
         <button
           onClick={onGenerate}
-          className="w-full sm:w-auto px-6 py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-white transition-transform duration-200 shadow-md font-medium hover:scale-105"
-        >
+          className="bg-gradient-to-r from-sky-400 to-rose-400 text-white px-6 py-3 rounded-full hover:scale-105 transition-transform duration-200 shadow-md font-medium"
+          >
           Generate Story Script
         </button>
       </div>

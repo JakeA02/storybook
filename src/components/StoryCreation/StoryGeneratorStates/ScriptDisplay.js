@@ -43,11 +43,8 @@ export default function ScriptDisplay({
    */
   const handleComplete = () => {
     const editedScriptString = scriptLines.join("\n");
-    onComplete(editedScriptString); // Pass the updated script string
+    onComplete(editedScriptString);
   };
-
-
-
 
   return (
     <div className="flex flex-col h-full">
@@ -66,7 +63,7 @@ export default function ScriptDisplay({
             onChange={(e) => handleLineChange(index, e.target.value)}
             disabled={isProhibitedLine(index)}
             className={`w-full font-story text-secondary bg-transparent mb-1 p-1 border-b border-gray-200 focus:border-primary focus:outline-none ${
-              index===0 ? "font-bold" : index%6===2 ? "font-bold" : ""
+              index === 0 ? "font-bold" : index % 6 === 2 ? "font-bold" : ""
             }`}
           />
         ))}
@@ -91,8 +88,8 @@ export default function ScriptDisplay({
           {/* Updated to call handleComplete which processes the state */}
           <button
             onClick={handleComplete}
-            className="px-5 py-2.5 rounded-full bg-primary text-white hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-colors duration-200 ease-in-out"
-          >
+            className="bg-gradient-to-r from-sky-400 to-rose-400 text-white px-6 py-3 rounded-full hover:scale-105 transition-transform duration-200 shadow-md font-medium"
+            >
             Continue to Illustrations
           </button>
         </div>
