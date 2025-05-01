@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { useStory } from "../../context/StoryContext";
 
-export default function ChildDescriptionForm({ onSubmit, onBack }) {
+export default function ChildDescriptionForm() {
+  const { handleBack, handleFormSubmit, childData } = useStory();
   const [formData, setFormData] = useState({
-    gender: "",
-    age: "",
-    hairColor: "",
-    hairStyle: "",
-    eyeColor: "",
-    skinTone: "",
+    gender: childData?.data?.gender || "",
+    age: childData?.data?.age || "",
+    hairColor: childData?.data?.hairColor || "",
+    hairStyle: childData?.data?.hairStyle || "",
+    eyeColor: childData?.data?.eyeColor || "",
+    skinTone: childData?.data?.skinTone || "",
   });
 
   const handleChange = (e) => {
@@ -20,12 +22,11 @@ export default function ChildDescriptionForm({ onSubmit, onBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    handleFormSubmit(formData);
   };
 
   // Check if required fields are filled
   const isFormValid =
-    formData.name &&
     formData.gender &&
     formData.hairColor &&
     formData.eyeColor &&
@@ -100,7 +101,7 @@ export default function ChildDescriptionForm({ onSubmit, onBack }) {
               <option value="brown">Brown</option>
               <option value="black">Black</option>
               <option value="red">Red/Auburn</option>
-              <option value="white">White</option> 
+              <option value="white">White</option>
               <option value="gray">Gray</option>
               <option value="none">None</option>
             </select>
@@ -183,7 +184,7 @@ export default function ChildDescriptionForm({ onSubmit, onBack }) {
         <div className="mt-8 flex justify-between">
           <button
             type="button"
-            onClick={onBack}
+            onClick={handleBack}
             className="px-4 py-2 rounded-full border border-primary text-primary hover:bg-primary hover:text-white transition-colors"
           >
             Back

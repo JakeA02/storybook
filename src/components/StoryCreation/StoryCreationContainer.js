@@ -1,64 +1,34 @@
-import { useState } from 'react';
+import { useStory } from '../../context/StoryContext';
 import CreationStart from './CreationStart';
 import PhotoUpload from './PhotoUpload';
 import ChildDescriptionForm from './ChildDescriptionForm';
 import StoryDetailsForm from './StoryDetailsForm';
+import StoryScriptGenerator from './StoryScriptGenerator';
 
 export default function StoryCreationContainer({ onComplete }) {
-  const [step, setStep] = useState('start');
-  const [childData, setChildData] = useState(null);
-  const [storyDetails, setStoryDetails] = useState(null);
+  const { step, handleScriptComplete } = useStory();
   
-  // Function to handle option selection in the first step
-  const handleOptionSelect = (option) => {
-    setStep(option);
-  };
-  
-  // Function to handle going back to the previous step
-  const handleBack = () => {
-    if (step === 'upload' || step === 'form') {
-      setStep('start');
-    } else if (step === 'details') {
-      // Go back to either upload or form depending on the previous step
-      setStep(childData.type === 'photo' ? 'upload' : 'form');
-    }
-  };
-  
-  // Function to handle photo upload submission
-  const handlePhotoSubmit = (photo) => {
-    setChildData({ type: 'photo', data: photo });
-    setStep('details');
-  };
-  
-  // Function to handle form submission
-  const handleFormSubmit = (formData) => {
-    setChildData({ type: 'description', data: formData });
-    setStep('details');
-  };
-  
-  // Function to handle story details form submission
-  const handleStoryDetailsSubmit = (details) => {
-    setStoryDetails(details);
-    // Combine all data and pass to the parent component
-    onComplete({
-      childData: childData,
-      storyDetails: details
-    });
+  // Wrapper for handleScriptComplete to call onComplete with the result
+  const handleCompleteWrapper = (scriptData) => {
+    const result = handleScriptComplete(scriptData);
+    onComplete(result);
   };
   
   // Render the appropriate component based on the current step
   const renderStep = () => {
     switch (step) {
       case 'start':
-        return <CreationStart onSelectOption={handleOptionSelect} />;
+        return <CreationStart />;
       case 'upload':
-        return <PhotoUpload onSubmit={handlePhotoSubmit} onBack={handleBack} />;
+        return <PhotoUpload />;
       case 'form':
-        return <ChildDescriptionForm onSubmit={handleFormSubmit} onBack={handleBack} />;
+        return <ChildDescriptionForm />;
       case 'details':
-        return <StoryDetailsForm onSubmit={handleStoryDetailsSubmit} onBack={handleBack} />;
+        return <StoryDetailsForm />;
+      case 'script':
+        return <StoryScriptGenerator onComplete={handleCompleteWrapper} />;
       default:
-        return <CreationStart onSelectOption={handleOptionSelect} />;
+        return <CreationStart />;
     }
   };
   

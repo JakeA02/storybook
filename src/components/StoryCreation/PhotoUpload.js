@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { useStory } from "../../context/StoryContext";
 
-export default function PhotoUpload({ onSubmit, onBack }) {
+export default function PhotoUpload() {
+  const { handleBack, handlePhotoSubmit } = useStory();
   const [photo, setPhoto] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
@@ -46,7 +48,7 @@ export default function PhotoUpload({ onSubmit, onBack }) {
 
   const handleSubmit = () => {
     if (photo) {
-      onSubmit(photo);
+      handlePhotoSubmit(photo);
     }
   };
 
@@ -103,7 +105,7 @@ export default function PhotoUpload({ onSubmit, onBack }) {
 
       <div className="mt-8 flex justify-between">
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="px-4 py-2 rounded-full border border-primary text-primary hover:bg-primary hover:text-white transition-colors"
         >
           Back
