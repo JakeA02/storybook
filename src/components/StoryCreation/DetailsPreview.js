@@ -44,9 +44,11 @@ const DetailsPreview = () => {
       {/* Conditionally render Child Photo */}
       {childData?.type === "photo" && photoUrl && (
         // Use amber border for consistency within the card
-        <div className="mb-4 pb-4 border-b border-amber-200">
+        <div className="mb-4 pb-4 border-b border-amber-500">
           {/* Use text-story color */}
-          <h3 className="text-lg font-semibold mb-2">Child's Photo:</h3>
+          <h3 className="text-lg font-semibold text-story mb-2">
+            Child's Photo:
+          </h3>
           <img
             src={photoUrl}
             alt="Uploaded child preview"
