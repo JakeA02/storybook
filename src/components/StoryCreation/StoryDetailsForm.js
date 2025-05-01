@@ -1,15 +1,15 @@
 import { useState } from "react";
-import StoryStylesCard from "./StoryStylesCard";
+import { useStory } from "../../context/StoryContext";
 
-export default function StoryDetailsForm({ onSubmit, onBack }) {
+export default function StoryDetailsForm() {
+  const { handleBack, handleStoryDetailsSubmit, storyDetails } = useStory();
   const [formData, setFormData] = useState({
-    childName: "",
-    lesson: "",
-    childLikes: "",
-    cartoonStyle: "",
+    childName: storyDetails?.childName || "",
+    lesson: storyDetails?.lesson || "",
+    childLikes: storyDetails?.childLikes || "",
+    cartoonStyle: storyDetails?.cartoonStyle || "",
   });
-  const [showStylesCard, setShowStylesCard] = useState(false);
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -27,7 +27,7 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    handleStoryDetailsSubmit(formData);
   };
 
   // Check if required fields are filled
@@ -117,7 +117,6 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
                 }`}
                 onClick={() => handleStyleSelect(style.id)}
               >
-                {/* MODIFIED: Changed rounded-md to rounded-lg, removed shadow-sm */}
                 <div className="bg-gradient-to-br from-sky-100 to-rose-100 aspect-square rounded-lg flex items-center justify-center border border-sky-200">
                   <img
                     src={`/images/${
@@ -140,7 +139,7 @@ export default function StoryDetailsForm({ onSubmit, onBack }) {
         <div className="mt-8 flex justify-between">
           <button
             type="button"
-            onClick={onBack}
+            onClick={handleBack}
             className="px-4 py-2 rounded-full border border-primary text-primary hover:bg-primary hover:text-white transition-colors"
           >
             Back
