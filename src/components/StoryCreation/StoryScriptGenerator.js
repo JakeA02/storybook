@@ -8,7 +8,7 @@ import InitialState from "./StoryGeneratorStates/InitialState";
 import { generateStoryScript } from "../../services/scriptGenerationService";
 
 export default function StoryScriptGenerator({ onComplete }) {
-  const { storyDetails, childData, handleBack } = useStory();
+  const { storyDetails, handleBack } = useStory();
   const [isLoading, setIsLoading] = useState(false);
   const [script, setScript] = useState(null);
   const [error, setError] = useState(null);
@@ -16,7 +16,7 @@ export default function StoryScriptGenerator({ onComplete }) {
   const handleGenerateScript = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const generatedScript = await generateStoryScript(storyDetails);
       setScript(generatedScript);
@@ -35,14 +35,11 @@ export default function StoryScriptGenerator({ onComplete }) {
   const handleComplete = (editedScript) => {
     // If editedScript is passed directly from ScriptDisplay, use it
     // Otherwise use the stored script
-    const finalScript = typeof editedScript === 'string' ? editedScript : script;
-    
+    const finalScript =
+      typeof editedScript === "string" ? editedScript : script;
+
     if (finalScript) {
-      onComplete({
-        ...storyDetails,
-        script: finalScript,
-        childData: childData.data,
-      });
+      onComplete(finalScript);
     } else {
       console.warn("Attempted to complete without a generated script.");
       setError(
@@ -68,11 +65,11 @@ export default function StoryScriptGenerator({ onComplete }) {
       {isLoading ? (
         <LoadingState childName={storyDetails.childName} />
       ) : error ? (
-        <ErrorState 
-          error={error} 
-          storyDetails={storyDetails} 
-          onRetry={handleRetry} 
-          onBack={handleBack} 
+        <ErrorState
+          error={error}
+          storyDetails={storyDetails}
+          onRetry={handleRetry}
+          onBack={handleBack}
         />
       ) : script ? (
         <ScriptDisplay

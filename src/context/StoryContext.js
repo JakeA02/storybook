@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from "react";
 
 // Create the context
 const StoryContext = createContext(null);
@@ -7,7 +7,7 @@ const StoryContext = createContext(null);
 export function useStory() {
   const context = useContext(StoryContext);
   if (!context) {
-    throw new Error('useStory must be used within a StoryProvider');
+    throw new Error("useStory must be used within a StoryProvider");
   }
   return context;
 }
@@ -17,35 +17,35 @@ export function StoryProvider({ children }) {
   const [childData, setChildData] = useState(null);
   const [storyDetails, setStoryDetails] = useState(null);
   const [storyScript, setStoryScript] = useState(null);
-  const [step, setStep] = useState('start');
-  
+  const [step, setStep] = useState("start");
+
   // Handle moving back in the story creation flow
   const handleBack = () => {
-    if (step === 'upload' || step === 'form') {
-      setStep('start');
-    } else if (step === 'details') {
-      setStep(childData?.type === 'photo' ? 'upload' : 'form');
-    } else if (step === 'script') {
-      setStep('details');
+    if (step === "upload" || step === "form") {
+      setStep("start");
+    } else if (step === "details") {
+      setStep(childData?.type === "photo" ? "upload" : "form");
+    } else if (step === "script") {
+      setStep("details");
     }
   };
 
   // Handle photo upload submission
   const handlePhotoSubmit = (photo) => {
-    setChildData({ type: 'photo', data: photo });
-    setStep('details');
+    setChildData({ type: "photo", data: photo });
+    setStep("details");
   };
 
   // Handle form submission
   const handleFormSubmit = (formData) => {
-    setChildData({ type: 'description', data: formData });
-    setStep('details');
+    setChildData({ type: "description", data: formData });
+    setStep("details");
   };
 
   // Handle story details form submission
   const handleStoryDetailsSubmit = (details) => {
     setStoryDetails(details);
-    setStep('script');
+    setStep("script");
   };
 
   // Handle script generation completion
@@ -54,7 +54,7 @@ export function StoryProvider({ children }) {
     return {
       childData: childData,
       storyDetails: storyDetails,
-      storyScript: scriptData
+      storyScript: scriptData,
     };
   };
 
@@ -73,8 +73,10 @@ export function StoryProvider({ children }) {
     handleFormSubmit,
     handleStoryDetailsSubmit,
     handleScriptComplete,
-    handleOptionSelect
+    handleOptionSelect,
   };
 
-  return <StoryContext.Provider value={value}>{children}</StoryContext.Provider>;
-} 
+  return (
+    <StoryContext.Provider value={value}>{children}</StoryContext.Provider>
+  );
+}
