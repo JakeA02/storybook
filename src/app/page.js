@@ -3,21 +3,19 @@
 import { useState } from "react";
 import Image from "next/image";
 import StoryCreationContainer from "../components/StoryCreation/StoryCreationContainer";
-import "../components/StoryCreation/styles.css";
+import { StoryProvider } from "../context/StoryContext";
 import "./globals.css";
 
 export default function Home() {
   const [isCreatingStory, setIsCreatingStory] = useState(false);
-  const [childData, setChildData] = useState(null);
+  const [storyData, setStoryData] = useState(null);
 
   const handleStartStoryCreation = () => {
     setIsCreatingStory(true);
   };
 
   const handleStoryCreationComplete = (data) => {
-    setChildData(data);
-    // In the future, this will move to the next step in the story creation process
-    console.log("Child data collected:", data);
+    setStoryData(data);
   };
 
   return (
@@ -78,7 +76,9 @@ export default function Home() {
           </div>
         </main>
       ) : (
-        <StoryCreationContainer onComplete={handleStoryCreationComplete} />
+        <StoryProvider>
+          <StoryCreationContainer onComplete={handleStoryCreationComplete} />
+        </StoryProvider>
       )}
     </div>
   );
