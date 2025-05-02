@@ -17,6 +17,7 @@ export function StoryProvider({ children }) {
   const [childData, setChildData] = useState(null);
   const [storyDetails, setStoryDetails] = useState(null);
   const [storyScript, setStoryScript] = useState(null);
+  const [characterIllustration, setCharacterIllustration] = useState(null);
   const [step, setStep] = useState("start");
 
   // Handle moving back in the story creation flow
@@ -27,6 +28,8 @@ export function StoryProvider({ children }) {
       setStep(childData?.type === "photo" ? "upload" : "form");
     } else if (step === "script") {
       setStep("details");
+    } else if (step === "illustration") {
+      setStep("script");
     }
   };
 
@@ -51,10 +54,24 @@ export function StoryProvider({ children }) {
   // Handle script generation completion
   const handleScriptComplete = (scriptData) => {
     setStoryScript(scriptData);
+    setStep("illustration");
     return {
       childData: childData,
       storyDetails: storyDetails,
       storyScript: scriptData,
+    };
+  };
+
+  // Handle illustration generation completion
+  const handleIllustrationComplete = (illustrationUrl) => {
+    setCharacterIllustration(illustrationUrl);
+    // Add your next step here, for example "preview" or "publish"
+    // setStep("preview");
+    return {
+      childData: childData,
+      storyDetails: storyDetails,
+      storyScript: storyScript,
+      characterIllustration: illustrationUrl,
     };
   };
 
@@ -67,12 +84,14 @@ export function StoryProvider({ children }) {
     childData,
     storyDetails,
     storyScript,
+    characterIllustration,
     step,
     handleBack,
     handlePhotoSubmit,
     handleFormSubmit,
     handleStoryDetailsSubmit,
     handleScriptComplete,
+    handleIllustrationComplete,
     handleOptionSelect,
   };
 
