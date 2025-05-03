@@ -123,8 +123,8 @@ export default function StoryDetailsForm() {
                       style.id.charAt(0).toUpperCase() + style.id.slice(1)
                     }CartoonSoccer.png`}
                     alt={style.name}
-                    width={100}
-                    height={100}
+                    width={125}
+                    height={125}
                     className="rounded-md"
                   />
                 </div>
