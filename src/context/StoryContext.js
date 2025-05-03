@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 // Create the context
 const StoryContext = createContext(null);
@@ -19,42 +19,72 @@ export function StoryProvider({ children }) {
   const [storyScript, setStoryScript] = useState(null);
   const [characterIllustration, setCharacterIllustration] = useState(null);
   const [step, setStep] = useState("start");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Validate data before proceeding to certain steps
+  useEffect(() => {
+    // If we're in the illustration step, validate we have the required data
+    if (step === "illustration") {
+      const hasRequiredData = childData && 
+                             childData.type && 
+                             childData.data && 
+                             storyDetails && 
+                             storyDetails.childName && 
+                             storyScript;
+      
+      if (!hasRequiredData) {
+        console.warn("Missing required data for illustration step, redirecting back to script step");
+        setStep("script");
+      }
+    }
+  }, [step, childData, storyDetails, storyScript]);
+
+  // Safe transition between steps with data validation
+  const safelySetStep = (nextStep) => {
+    setIsTransitioning(true);
+    
+    // Add a small delay to ensure state has settled
+    setTimeout(() => {
+      setStep(nextStep);
+      setIsTransitioning(false);
+    }, 50);
+  };
 
   // Handle moving back in the story creation flow
   const handleBack = () => {
     if (step === "upload" || step === "form") {
-      setStep("start");
+      safelySetStep("start");
     } else if (step === "details") {
-      setStep(childData?.type === "photo" ? "upload" : "form");
+      safelySetStep(childData?.type === "photo" ? "upload" : "form");
     } else if (step === "script") {
-      setStep("details");
+      safelySetStep("details");
     } else if (step === "illustration") {
-      setStep("script");
+      safelySetStep("script");
     }
   };
 
   // Handle photo upload submission
   const handlePhotoSubmit = (photo) => {
     setChildData({ type: "photo", data: photo });
-    setStep("details");
+    safelySetStep("details");
   };
 
   // Handle form submission
   const handleFormSubmit = (formData) => {
     setChildData({ type: "description", data: formData });
-    setStep("details");
+    safelySetStep("details");
   };
 
   // Handle story details form submission
   const handleStoryDetailsSubmit = (details) => {
     setStoryDetails(details);
-    setStep("script");
+    safelySetStep("script");
   };
 
   // Handle script generation completion
   const handleScriptComplete = (scriptData) => {
     setStoryScript(scriptData);
-    setStep("illustration");
+    safelySetStep("illustration");
     return {
       childData: childData,
       storyDetails: storyDetails,
@@ -66,7 +96,7 @@ export function StoryProvider({ children }) {
   const handleIllustrationComplete = (illustrationUrl) => {
     setCharacterIllustration(illustrationUrl);
     // Add your next step here, for example "preview" or "publish"
-    // setStep("preview");
+    // safelySetStep("preview");
     return {
       childData: childData,
       storyDetails: storyDetails,
@@ -77,7 +107,7 @@ export function StoryProvider({ children }) {
 
   // Function to handle option selection in the first step
   const handleOptionSelect = (option) => {
-    setStep(option);
+    safelySetStep(option);
   };
 
   const value = {
@@ -86,6 +116,7 @@ export function StoryProvider({ children }) {
     storyScript,
     characterIllustration,
     step,
+    isTransitioning,
     handleBack,
     handlePhotoSubmit,
     handleFormSubmit,

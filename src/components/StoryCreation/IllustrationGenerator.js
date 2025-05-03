@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useStory } from "../../context/StoryContext";
 // Ensure this path is correct
 import { generateCharacterIllustration } from "../../services/imageGenerationService";
@@ -13,25 +13,33 @@ export default function IllustrationGenerator({ onComplete }) {
   const [isLoading, setIsLoading] = useState(false);
   const [illustrationDataUri, setIllustrationDataUri] = useState(null);
   const [error, setError] = useState(null);
+  const generationRequestedRef = useRef(false);
 
-  // Effect to trigger generation/edit when component mounts or relevant data changes
-  // Consider adding childData and storyDetails to dependency array if they can change
-  // while the component is mounted and should trigger a regeneration.
   useEffect(() => {
-    // Ensure we have the necessary data before attempting generation
-    if (childData && storyDetails) {
+    // Check if all required data is available and valid
+    const isDataValid = 
+      childData && 
+      childData.type && 
+      childData.data && 
+      storyDetails && 
+      storyDetails.childName;
+    
+    if (isDataValid && !isLoading && !generationRequestedRef.current) {
+      console.log("Data is valid, calling handleGenerateIllustration...");
+      generationRequestedRef.current = true;
       handleGenerateIllustration();
-    } else {
+    } else if (!isDataValid && !generationRequestedRef.current) {
       console.warn(
-        "IllustrationGenerator: Missing childData or storyDetails on mount."
+        "IllustrationGenerator: Missing or invalid data - ",
+        { childData, storyDetails }
       );
-      setError("Missing necessary data to generate illustration.");
+      setError("Missing or invalid data needed to generate illustration. Please go back and ensure all information is provided.");
     }
-  }, []); // Runs once on mount, or add dependencies like [childData, storyDetails]
+  }, [childData, storyDetails]); // Dependencies to prevent double mounting & API calls
 
   const handleGenerateIllustration = async () => {
     // Basic check to prevent calls without data
-    if (!childData || !storyDetails) {
+    if (!childData || !childData.data || !storyDetails) {
       setError("Cannot generate illustration: missing data.");
       return;
     }
@@ -41,6 +49,7 @@ export default function IllustrationGenerator({ onComplete }) {
     setIllustrationDataUri(null);
 
     try {
+      console.log("Generating illustration using:", { childData, storyDetails });
       const dataUri = await generateCharacterIllustration(
         childData,
         storyDetails
@@ -56,6 +65,12 @@ export default function IllustrationGenerator({ onComplete }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Reset the ref when manually triggering a regeneration
+  const handleRegenerateIllustration = () => {
+    generationRequestedRef.current = false;
+    handleGenerateIllustration();
   };
 
   const handleComplete = () => {
@@ -103,7 +118,7 @@ export default function IllustrationGenerator({ onComplete }) {
         {/* Allow retry only if not loading */}
         {!isLoading && (
           <button
-            onClick={handleGenerateIllustration}
+            onClick={handleRegenerateIllustration}
             disabled={isLoading}
             className="px-5 py-2.5 rounded-full border border-primary text-primary hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 transition-colors duration-200 ease-in-out disabled:opacity-50"
           >
@@ -145,7 +160,7 @@ export default function IllustrationGenerator({ onComplete }) {
                 {/* Regenerate Button (Show if we have an image OR an error) */}
                 {(illustrationDataUri || error) && (
                   <button
-                    onClick={handleGenerateIllustration}
+                    onClick={handleRegenerateIllustration}
                     disabled={isLoading}
                     className="px-5 py-2.5 rounded-full border border-gray-400 text-secondary hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-colors duration-200 ease-in-out disabled:opacity-50"
                   >
