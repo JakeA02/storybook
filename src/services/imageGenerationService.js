@@ -5,17 +5,23 @@ const createPrompt = (childData, storyDetails, type) => {
 
   if (type === "photo") {
     // Prompt for editing an existing image
-    return `Use the provided image to represent a friendly, approachable cartoon character in a ${style} style (${styleDesc}). Maintain key features but adapt to the cartoon style.`;
+    return `Use the provided image to represent a friendly, approachable cartoon character 
+    in a ${style} style (${styleDesc}). Maintain key features of the person but adapt to the cartoon style. 
+    Do not give a background, just mock up the person as a cartoon character. They should be smiling and standing, with no objects in hand.
+    Their head needs to be in full view of the frame.`;
   } else {
     // Prompt for generating an image from description
     const description = childData.data || {};
-    return `Create a friendly, approachable cartoon character with the following features: ${
+    return `Create a friendly, approachable cartoon character with the following features: ${description.hairStyle} ${
       description.hairColor || "unspecified"
     } hair, ${description.eyeColor || "unspecified"} eyes, ${
       description.skinTone || "unspecified"
-    } skin tone, ${description.age || "unspecified"} years old, ${
+    } skin tone, is a ${description.age || "unspecified"}, ${
       description.gender || "unspecified"
-    }. Style: ${style} (${styleDesc}). The character should be smiling.`;
+    }. Style: ${style} (${styleDesc}).  
+    Do not give a background, just mock up the person as a cartoon character. 
+    They should be smiling and standing, with no objects in hand. 
+    Their head needs to be in full view of the frame. `;
   }
 };
 
@@ -46,7 +52,6 @@ const getStyleDescription = (style) => {
  * @returns {Promise<string>} - The generated image as a base64 data URI
  */
 const makeApiCall = async (url, options) => {
-  console.log("Making API call to:", url);
   const response = await fetch(url, options);
 
   if (!response.ok) {
@@ -92,7 +97,7 @@ const generateIllustrationFromDescription = async (childData, storyDetails) => {
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-image-1", // Standard model for generation
+      model: "gpt-image-1",
       prompt: prompt,
       n: 1,
       size: "1024x1024",
@@ -156,10 +161,8 @@ export const generateCharacterIllustration = async (
   }
 
   if (childData.type === "photo") {
-    console.log("Calling editIllustrationFromPhoto");
     return editIllustrationFromPhoto(childData, storyDetails);
   } else if (childData.type === "description") {
-    console.log("Calling generateIllustrationFromDescription");
     return generateIllustrationFromDescription(childData, storyDetails);
   } else {
     throw new Error(`Unsupported childData type: ${childData.type}`);
