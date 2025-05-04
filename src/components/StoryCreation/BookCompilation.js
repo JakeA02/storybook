@@ -2,16 +2,27 @@ import { useState, useEffect } from "react";
 import { useStory } from "../../context/StoryContext";
 import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { generateStoryIllustrations } from "../../services/storyIllustrationService";
+import { makeApiCall } from "../../services/imageGenerationService";
+import { getStyleDescription } from "../../utils";
+import { base64ToBlob } from "../../utils";
 
 export default function BookCompilation({ onComplete }) {
-  const { storyScript, storyDetails, characterIllustration, childData } =
-    useStory();
+  const {
+    storyScript,
+    storyDetails,
+    characterIllustration,
+    childData,
+    characterMap: contextCharacterMap,
+    setCharacterMap: setContextCharacterMap,
+  } = useStory();
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [illustrations, setIllustrations] = useState([]);
   const [showScript, setShowScript] = useState(false);
   const [formattedScript, setFormattedScript] = useState([]);
   const [stanzas, setStanzas] = useState([]);
+  const [generatingCharacterMap, setGeneratingCharacterMap] = useState(false);
+  const [characterMap, setCharacterMap] = useState(null);
 
   // Format the script when it's available
   useEffect(() => {
@@ -29,15 +40,15 @@ export default function BookCompilation({ onComplete }) {
       });
 
       setFormattedScript(transformedLines);
-      
+
       // Extract stanzas for illustration generation
       const extractedStanzas = [];
       let currentStanza = "";
       let inStanza = false;
-      
+
       for (let i = 0; i < scriptLines.length; i++) {
         const line = scriptLines[i];
-        
+
         if (line.includes("Stanza")) {
           if (inStanza && currentStanza.trim()) {
             extractedStanzas.push(currentStanza.trim());
@@ -48,37 +59,91 @@ export default function BookCompilation({ onComplete }) {
           currentStanza += line + " ";
         }
       }
-      
+
       // Add the last stanza if it exists
       if (inStanza && currentStanza.trim()) {
         extractedStanzas.push(currentStanza.trim());
       }
-      
+
       // Ensure we have exactly 12 stanzas, pad with empty ones if needed
       while (extractedStanzas.length < 12) {
         extractedStanzas.push("Empty page");
       }
-      
+
       // Limit to 12 stanzas
       setStanzas(extractedStanzas.slice(0, 12));
     }
   }, [storyScript]);
 
+  const getCharacterMapPrompt = (storyScript, storyDetails) => {
+    return ` 
+  Please create a "character sheet" of what each character should look like in full, 
+  as if you were submitting it to an artist for them to have a reference of what 
+  each character should look like. The style should be ${
+    storyDetails.cartoonStyle
+  } (${getStyleDescription(storyDetails.cartoonStyle)}).
+  I've also attached an illustration of the main character. Make sure the main character looks identical to the 
+  illustration with their face in clear view, but add clothing and accessories as you see fit for the story.
+  Label each character with their name clearly above them. Below is the script for the story:
+  ${storyScript}`;
+  };
+
+  const generateCharacterMap = async () => {
+    const url = "https://api.openai.com/v1/images/edits";
+    const formData = new FormData();
+    const characterIllustrationBase64 = characterIllustration.replace(
+      /^data:image\/\w+;base64,/,
+      ""
+    );
+
+    const image = base64ToBlob(characterIllustrationBase64, "image/png");
+    formData.append("model", "gpt-image-1");
+    formData.append("prompt", getCharacterMapPrompt(storyScript, storyDetails));
+    formData.append("n", "1");
+    formData.append("size", "1024x1024");
+    formData.append("quality", "low");
+    formData.append("image", image);
+
+    const options = {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+      },
+      body: formData,
+    };
+
+    const characterMap = await makeApiCall(url, options);
+    handleCharacterMapComplete(characterMap);
+    return characterMap;
+  };
+
+  const handleCharacterMapComplete = (mapDataUri) => {
+    setCharacterMap(mapDataUri);
+    if (setContextCharacterMap) {
+      setContextCharacterMap(mapDataUri);
+    }
+  };
+
   // Generate illustrations for each part of the story
   const generateBookIllustrations = async () => {
-    setIsGenerating(true);
     setProgress(0);
     setIllustrations([]);
+    setGeneratingCharacterMap(true);
+    setIsGenerating(true);
 
     try {
+      const characterMap = await generateCharacterMap();
+      setGeneratingCharacterMap(false);
+      handleCharacterMapComplete(characterMap);
+
       const generatedIllustrations = await generateStoryIllustrations(
         stanzas,
-        characterIllustration,
+        characterMap,
         storyDetails,
         (pageNumber, dataUri) => {
           // Update progress as each page is completed
           setProgress(Math.floor((pageNumber / 12) * 100));
-          setIllustrations(prev => {
+          setIllustrations((prev) => {
             const newIllustrations = [...prev];
             newIllustrations[pageNumber - 1] = dataUri;
             return newIllustrations;
@@ -87,12 +152,13 @@ export default function BookCompilation({ onComplete }) {
       );
 
       setIllustrations(generatedIllustrations);
-      
+
       // Call the onComplete handler with the generated illustrations
       onComplete(generatedIllustrations);
     } catch (error) {
       console.error("Error generating illustrations:", error);
       alert("There was an error generating illustrations. Please try again.");
+      setGeneratingCharacterMap(false);
     } finally {
       setIsGenerating(false);
     }
@@ -153,7 +219,9 @@ export default function BookCompilation({ onComplete }) {
                       key={index}
                       className={`font-story text-secondary w-full ${
                         line.trim() === "" ? "h-4" : "mb-1"
-                      } ${index === 0 || line.includes("Page") ? "font-bold" : ""}`}
+                      } ${
+                        index === 0 || line.includes("Page") ? "font-bold" : ""
+                      }`}
                     >
                       {line}
                     </div>
@@ -170,9 +238,15 @@ export default function BookCompilation({ onComplete }) {
           <div className="flex justify-center mb-6">
             <Loader2 className="animate-spin w-10 h-10 text-primary" />
           </div>
-          <p className="mb-4">
-            Generating illustrations... {progress}% complete
-          </p>
+          {generatingCharacterMap ? (
+            <p className="mb-4">
+              Generating character map... {progress}% complete
+            </p>
+          ) : (
+            <p className="mb-4">
+              Generating illustrations... {progress}% complete
+            </p>
+          )}
           <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mb-6">
             <div
               className="bg-gradient-to-r from-sky-400 to-rose-400 h-2.5 rounded-full"
@@ -199,6 +273,16 @@ export default function BookCompilation({ onComplete }) {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+          {contextCharacterMap && (
+            <div className="text-center">
+              <h3 className="text-lg font-semibold mb-2">Character Map</h3>
+              <img
+                src={contextCharacterMap}
+                alt="Character Map"
+                className="w-full h-full object-cover"
+              />
             </div>
           )}
         </div>

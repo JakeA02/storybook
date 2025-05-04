@@ -10,27 +10,28 @@ import { base64ToBlob } from "../utils";
  * Creates prompt for story page illustration
  * @param {string} stanza - Text to include in the illustrationw
  * @param {Object} storyDetails - Story details including style preferences
+ * @param {number} pageNumber - Page number (1-12)
  * @returns {string} - Prompt for the image generation
  */
-const createStoryPagePrompt = (stanza, storyDetails) => {
+const createStoryPagePrompt = (stanza, storyDetails, pageNumber) => {
   const style = storyDetails.cartoonStyle || "cartoon";
   const styleDesc = getStyleDescription(style);
   const storyTheme = storyDetails.storyTheme || "adventure";
 
   return `Create a ${style} style (${styleDesc}) storybook illustration for a children's story. 
-  
-  The main character should look identical to the character in the reference image.
-  
-  Scene description: Illustrate the following stanza: ###${stanza}###
-  
-  The scene should be colorful, engaging, and appropriate for a children's book about ${storyTheme} .
-  
-The text from the stanza must be included in the illustration. The text should be dark, high contrast, and large enough for easy reading by children and parents. Use well-spaced lines.
-Ensure the text is fully within the image frame, with a clear margin from all edges. The text should occupy approximately 15% of the image height. Do not allow the text to overlap any important visual elements. Ensure a margin of at least 10% of the image width/height from the edges for all text. The overall layout should feel balanced and suitable for a printed children's book page.
+  I've attached a character map reference with all the characters in a story, and your stanza is only one page of the story. 
+  Do not include any characters that are not explicity mentioned in the stanza. 
 
---no text overlapping edges, --no text cut off, --no text outside the illustration boundaries
+  Scene description: Illustrate the following stanza for page ${pageNumber}: ###${stanza}###
   
-  Make sure the main character is clearly recognizable and consistent with the reference image.`;
+  The scene should be colorful, engaging, and appropriate for a children's book about ${storyTheme}.
+  
+  The text from the stanza must be included in the illustration. The text should be dark, high contrast, and large enough for easy reading by children and parents. Use well-spaced lines.
+  Ensure the text is fully within the image frame, with a clear margin from all edges. Do not allow the text to overlap any important visual elements. Ensure a margin of at least 10% of the image width/height from the edges for all text. The overall layout should feel balanced and suitable for a printed children's book page.
+
+  --no text overlapping edges, --no text cut off, --no text outside the illustration boundaries
+  
+  Make sure the all the characters are clearly recognizable and consistent with the reference image.`;
 };
 
 /**
@@ -79,13 +80,12 @@ const makeApiCall = async (url, options) => {
  */
 const generateSinglePageIllustration = async (
   stanza,
-  characterImageUri,
+  characterMapUri,
   storyDetails,
   pageNumber
 ) => {
   const prompt = createStoryPagePrompt(
     stanza,
-    characterImageUri,
     storyDetails,
     pageNumber
   );
@@ -93,21 +93,22 @@ const generateSinglePageIllustration = async (
   const url = "https://api.openai.com/v1/images/edits";
 
   // Extract base64 data from the URI by removing the prefix
-  let characterImageBase64 = null;
-  if (characterImageUri) {
-    characterImageBase64 = characterImageUri.replace(
+  let characterMapBase64 = null;
+  if (characterMapUri && typeof characterMapUri === 'string' && characterMapUri.includes('base64')) {
+    characterMapBase64 = characterMapUri.replace(
       /^data:image\/\w+;base64,/,
       ""
     );
   }
-  const imageBlob = base64ToBlob(characterImageBase64, "image/png");
+
+  const imageBlob = base64ToBlob(characterMapBase64, "image/png");
   const formData = new FormData();
 
   formData.append("model", "gpt-image-1");
   formData.append("prompt", prompt);
   formData.append("n", "1");
   formData.append("size", "1024x1024");
-  formData.append("quality", "high");
+  formData.append("quality", "low");
   formData.append("image", imageBlob);
 
   const options = {
@@ -131,7 +132,7 @@ const generateSinglePageIllustration = async (
  */
 export const generateStoryIllustrations = async (
   stanzas,
-  characterImageUri,
+  characterMapUri,
   storyDetails,
   onProgressUpdate = null
 ) => {
@@ -168,7 +169,7 @@ export const generateStoryIllustrations = async (
       // Generate this page's illustration
       generateSinglePageIllustration(
         stanzas[pageIndex],
-        characterImageUri,
+        characterMapUri,
         storyDetails,
         pageNumber
       )
