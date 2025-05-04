@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useStory } from "../../context/StoryContext";
 import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 
@@ -14,8 +14,12 @@ function Page({ pageData, isLeft }) {
   }
 
   return (
-    <div className={`book-page bg-white ${alignmentClass}`}>
-      {/* Image container */}
+    <div
+      className={`book-page bg-white h-full w-full flex flex-col relative ${
+        isLeft ? "page-left" : "page-right"
+      }`}
+    >
+      {/* Image container - ensure it handles flex layout well */}
       <div className="flex-grow flex items-center justify-center p-2 sm:p-4 overflow-hidden">
         <img
           key={pageData.illustration} // Key for potential re-renders
@@ -140,8 +144,7 @@ export default function BookPreview({ onComplete }) {
     }
   };
 
-  // Add effect to listen for fullscreen changes (browser events)
-  React.useEffect(() => {
+  useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(
         !!document.fullscreenElement || !!document.webkitFullscreenElement
@@ -196,7 +199,7 @@ export default function BookPreview({ onComplete }) {
       <div className="p-4 md:p-8 text-center">
         <h2 className="text-2xl font-bold mb-2">Book Preview</h2>
         <p className="text-gray-600">Generating illustrations...</p>
-        {/* Optional: Add a loading spinner */}
+        <Loader2 className="w-10 h-10 animate-spin" />
       </div>
     );
   }
@@ -230,13 +233,27 @@ export default function BookPreview({ onComplete }) {
         {/* Inner wrapper for aspect ratio and centering the Prev/Next buttons */}
         <div className="book-viewer-inner-wrapper relative w-full">
           {/* The Book Spread */}
-          <div className="book-spread shadow-xl border border-gray-300 rounded-lg">
-            {/* Left Page */}
-            <Page pageData={leftPageData} isLeft={true} />
-            {/* Spine */}
-            <div className="book-spine"></div>
-            {/* Right Page */}
-            <Page pageData={rightPageData} isLeft={false} />
+          <div className="book-spread flex items-stretch shadow-xl border border-gray-300 rounded-lg overflow-hidden">
+            {/* Left Page Wrapper (Optional but good for controlling width/flex properties)
+                Using flex-1 tells the page to grow and shrink as needed.
+                Using w-1/2 gives it a base width. Adjust as needed.
+              */}
+            <div className="w-1/2 flex-shrink-0 relative">
+              {" "}
+              {/* Added wrapper */}
+              <Page pageData={leftPageData} isLeft={true} />
+            </div>
+
+            {/* Spine - Give it a small width */}
+            <div className="book-spine w-1 sm:w-2 bg-gray-300 flex-shrink-0"></div>
+
+            {/* Right Page Wrapper
+             */}
+            <div className="w-1/2 flex-shrink-0 relative">
+              {" "}
+              {/* Added wrapper */}
+              <Page pageData={rightPageData} isLeft={false} />
+            </div>
           </div>
 
           {/* Prev/Next Buttons - Positioned absolutely relative to inner-wrapper */}
@@ -268,14 +285,14 @@ export default function BookPreview({ onComplete }) {
       <div className="book-navigation-controls flex justify-center items-center gap-2 sm:gap-4 mb-6 px-4 flex-shrink-0">
         <button
           onClick={() => setCurrentSpreadIndex(0)}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={currentSpreadIndex === 0}
         >
           First
         </button>
         <button
           onClick={handlePrevPage}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
           disabled={currentSpreadIndex === 0}
           aria-label="Previous Spread"
         >
@@ -291,7 +308,7 @@ export default function BookPreview({ onComplete }) {
 
         <button
           onClick={handleNextPage}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
           disabled={currentSpreadIndex >= numSpreads - 1}
           aria-label="Next Spread"
         >
@@ -300,7 +317,7 @@ export default function BookPreview({ onComplete }) {
         </button>
         <button
           onClick={() => setCurrentSpreadIndex(numSpreads - 1)}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={currentSpreadIndex === numSpreads - 1}
         >
           Last
@@ -312,7 +329,7 @@ export default function BookPreview({ onComplete }) {
       <div className="action-controls flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 flex-shrink-0">
         <button
           onClick={handleFullscreen}
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 w-full sm:w-auto"
+          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-rose-400 w-full sm:w-auto"
         >
           {isFullscreen ? "Exit Fullscreen" : "View Fullscreen"}
         </button>
