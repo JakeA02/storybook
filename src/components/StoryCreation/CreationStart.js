@@ -2,8 +2,18 @@ import { useStory } from "../../context/StoryContext";
 import Image from "next/image";
 import { CloudUpload, Clipboard } from "lucide-react";
 
-export default function CreationStart() {
+export default function CreationStart({ onStartClick }) {
   const { handleOptionSelect } = useStory();
+
+  // Handle option selection with start click callback
+  const handleOptionWithCallback = (option) => {
+    // Call the onStartClick prop if provided (for bypassing start screen)
+    if (onStartClick) {
+      onStartClick();
+    }
+    // Call the context handler
+    handleOptionSelect(option);
+  };
 
   return (
     <div className="card-transition-container">
@@ -15,7 +25,7 @@ export default function CreationStart() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div
           className="option-card cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => handleOptionSelect("upload")}
+          onClick={() => handleOptionWithCallback("upload")}
         >
           <div className="card-inner p-6 bg-white rounded-xl shadow-md hover:shadow-lg border-2 border-sky-100">
             <h3 className="text-xl font-semibold mb-3 text-center text-primary flex items-center justify-center gap-2">
@@ -31,7 +41,7 @@ export default function CreationStart() {
 
         <div
           className="option-card cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => handleOptionSelect("form")}
+          onClick={() => handleOptionWithCallback("form")}
         >
           <div className="card-inner p-6 bg-white rounded-xl shadow-md hover:shadow-lg border-2 border-rose-100">
             <h3 className="text-xl font-semibold mb-3 text-center text-secondary flex items-center justify-center gap-2">

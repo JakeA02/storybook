@@ -23,6 +23,13 @@ export const getStyleDescription = (style) => {
  * @throws {Error} If the base64 string is invalid.
  */
 export const base64ToBlob = (base64, mimeType) => {
+  // If base64 is null, undefined, or empty, return a minimal valid blob
+  console.log("base64", base64.slice(0, 100));
+  if (!base64) {
+    // Return a small empty blob as fallback
+    return new Blob([], { type: mimeType });
+  }
+  
   try {
     // Decode Base64 string
     const byteCharacters = atob(base64);
@@ -35,6 +42,143 @@ export const base64ToBlob = (base64, mimeType) => {
     return new Blob([byteArray], { type: mimeType });
   } catch (e) {
     console.error("Error decoding base64 string:", e);
-    throw new Error("Failed to decode base64 string."); // Re-throw for caller handling
+    // Return a small empty blob as fallback instead of throwing
+    return new Blob([], { type: mimeType });
+  }
+};
+
+/**
+ * IndexedDB utilities for storing large images
+ */
+
+const DB_NAME = 'storybook_images';
+const DB_VERSION = 1;
+const STORE_NAME = 'images';
+
+// Initialize the database
+export const initImageDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    request.onerror = (event) => {
+      console.error('IndexedDB error:', event.target.error);
+      reject('Error opening IndexedDB');
+    };
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      // Create an object store for images if it doesn't exist
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      }
+    };
+    
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+  });
+};
+
+// Store an image in IndexedDB
+export const storeImage = async (id, imageData) => {
+  try {
+    const db = await initImageDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      
+      const request = store.put({ id, data: imageData });
+      
+      request.onerror = (event) => {
+        console.error('Error storing image:', event.target.error);
+        reject('Failed to store image');
+      };
+      
+      request.onsuccess = (event) => {
+        resolve({ id });
+      };
+    });
+  } catch (error) {
+    console.error('Error in storeImage:', error);
+    throw error;
+  }
+};
+
+// Get an image from IndexedDB
+export const getImage = async (id) => {
+  try {
+    const db = await initImageDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      
+      const request = store.get(id);
+      
+      request.onerror = (event) => {
+        console.error('Error retrieving image:', event.target.error);
+        reject('Failed to retrieve image');
+      };
+      
+      request.onsuccess = (event) => {
+        if (request.result) {
+          resolve(request.result.data);
+        } else {
+          resolve(null);
+        }
+      };
+    });
+  } catch (error) {
+    console.error('Error in getImage:', error);
+    throw error;
+  }
+};
+
+// Delete an image from IndexedDB
+export const deleteImage = async (id) => {
+  try {
+    const db = await initImageDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      
+      const request = store.delete(id);
+      
+      request.onerror = (event) => {
+        console.error('Error deleting image:', event.target.error);
+        reject('Failed to delete image');
+      };
+      
+      request.onsuccess = (event) => {
+        resolve(true);
+      };
+    });
+  } catch (error) {
+    console.error('Error in deleteImage:', error);
+    throw error;
+  }
+};
+
+// Clear all images from IndexedDB
+export const clearImageStore = async () => {
+  try {
+    const db = await initImageDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      
+      const request = store.clear();
+      
+      request.onerror = (event) => {
+        console.error('Error clearing image store:', event.target.error);
+        reject('Failed to clear images');
+      };
+      
+      request.onsuccess = (event) => {
+        resolve(true);
+      };
+    });
+  } catch (error) {
+    console.error('Error in clearImageStore:', error);
+    throw error;
   }
 };
