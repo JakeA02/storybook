@@ -1,5 +1,18 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
+// Define step configuration for the entire application
+export const STEPS = {
+  START: "start",
+  UPLOAD: "upload",
+  FORM: "form",
+  DETAILS: "details",
+  SCRIPT: "script",
+  ILLUSTRATION: "illustration",
+  COMPILE: "compile",
+  PREVIEW: "preview",
+  CHECKOUT: "checkout"
+};
+
 // Create the context
 const StoryContext = createContext(null);
 
@@ -18,30 +31,66 @@ export function StoryProvider({ children }) {
   const [storyDetails, setStoryDetails] = useState(null);
   const [storyScript, setStoryScript] = useState(null);
   const [characterIllustration, setCharacterIllustration] = useState(null);
-  const [step, setStep] = useState("start");
+  const [bookIllustrations, setBookIllustrations] = useState([]);
+  const [compiledBook, setCompiledBook] = useState(null);
+  const [step, setStep] = useState(STEPS.START);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [history, setHistory] = useState([STEPS.START]); // Track step history for navigation
+
+  // Data validation helpers
+  const hasRequiredChildData = () => 
+    childData && childData.type && childData.data;
+
+  const hasRequiredStoryDetails = () => 
+    storyDetails && storyDetails.childName;
+
+  const hasRequiredScript = () => !!storyScript;
+  
+  const hasRequiredIllustration = () => !!characterIllustration;
+
+  const hasRequiredBookIllustrations = () => 
+    Array.isArray(bookIllustrations) && bookIllustrations.length === 12;
 
   // Validate data before proceeding to certain steps
   useEffect(() => {
-    // If we're in the illustration step, validate we have the required data
-    if (step === "illustration") {
-      const hasRequiredData = childData && 
-                             childData.type && 
-                             childData.data && 
-                             storyDetails && 
-                             storyDetails.childName && 
-                             storyScript;
-      
-      if (!hasRequiredData) {
-        console.warn("Missing required data for illustration step, redirecting back to script step");
-        setStep("script");
+    // Validation logic for steps that require certain data
+    const validateStepData = () => {
+      if (step === STEPS.DETAILS && !hasRequiredChildData()) {
+        return STEPS.START;
       }
-    }
-  }, [step, childData, storyDetails, storyScript]);
+      if (step === STEPS.SCRIPT && (!hasRequiredChildData() || !hasRequiredStoryDetails())) {
+        return STEPS.DETAILS;
+      }
+      if (step === STEPS.ILLUSTRATION && (!hasRequiredChildData() || !hasRequiredStoryDetails() || !hasRequiredScript())) {
+        return STEPS.SCRIPT;
+      }
+      if (step === STEPS.COMPILE && (!hasRequiredChildData() || !hasRequiredStoryDetails() || !hasRequiredScript() || !hasRequiredIllustration())) {
+        return STEPS.ILLUSTRATION;
+      }
+      if (step === STEPS.PREVIEW && !hasRequiredBookIllustrations()) {
+        return STEPS.COMPILE;
+      }
+      if (step === STEPS.CHECKOUT && !compiledBook) {
+        return STEPS.PREVIEW;
+      }
+      return null;
+    };
 
-  // Safe transition between steps with data validation
+    const redirectStep = validateStepData();
+    if (redirectStep) {
+      console.warn(`Missing required data for ${step} step, redirecting to ${redirectStep}`);
+      safelySetStep(redirectStep);
+    }
+  }, [step, childData, storyDetails, storyScript, characterIllustration, bookIllustrations, compiledBook]);
+
+  // Safe transition between steps with data validation and history tracking
   const safelySetStep = (nextStep) => {
     setIsTransitioning(true);
+    
+    // Add to history if moving forward
+    if (!history.includes(nextStep)) {
+      setHistory(prevHistory => [...prevHistory, nextStep]);
+    }
     
     // Add a small delay to ensure state has settled
     setTimeout(() => {
@@ -52,39 +101,47 @@ export function StoryProvider({ children }) {
 
   // Handle moving back in the story creation flow
   const handleBack = () => {
-    if (step === "upload" || step === "form") {
-      safelySetStep("start");
-    } else if (step === "details") {
-      safelySetStep(childData?.type === "photo" ? "upload" : "form");
-    } else if (step === "script") {
-      safelySetStep("details");
-    } else if (step === "illustration") {
-      safelySetStep("script");
+    if (history.length > 1) {
+      // Remove current step from history and go to previous
+      setHistory(prevHistory => {
+        const newHistory = [...prevHistory];
+        newHistory.pop(); // Remove current step
+        return newHistory;
+      });
+      
+      const previousStep = history[history.length - 2];
+      if (previousStep) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setStep(previousStep);
+          setIsTransitioning(false);
+        }, 50);
+      }
     }
   };
 
   // Handle photo upload submission
   const handlePhotoSubmit = (photo) => {
     setChildData({ type: "photo", data: photo });
-    safelySetStep("details");
+    safelySetStep(STEPS.DETAILS);
   };
 
   // Handle form submission
   const handleFormSubmit = (formData) => {
     setChildData({ type: "description", data: formData });
-    safelySetStep("details");
+    safelySetStep(STEPS.DETAILS);
   };
 
   // Handle story details form submission
   const handleStoryDetailsSubmit = (details) => {
     setStoryDetails(details);
-    safelySetStep("script");
+    safelySetStep(STEPS.SCRIPT);
   };
 
   // Handle script generation completion
   const handleScriptComplete = (scriptData) => {
     setStoryScript(scriptData);
-    safelySetStep("illustration");
+    safelySetStep(STEPS.ILLUSTRATION);
     return {
       childData: childData,
       storyDetails: storyDetails,
@@ -95,8 +152,7 @@ export function StoryProvider({ children }) {
   // Handle illustration generation completion
   const handleIllustrationComplete = (illustrationUrl) => {
     setCharacterIllustration(illustrationUrl);
-    // Add your next step here, for example "preview" or "publish"
-    // safelySetStep("preview");
+    safelySetStep(STEPS.COMPILE);
     return {
       childData: childData,
       storyDetails: storyDetails,
@@ -105,9 +161,68 @@ export function StoryProvider({ children }) {
     };
   };
 
+  // Handle book compilation completion
+  const handleCompileComplete = (illustrations) => {
+    setBookIllustrations(illustrations);
+    safelySetStep(STEPS.PREVIEW);
+    return {
+      childData,
+      storyDetails,
+      storyScript,
+      characterIllustration,
+      bookIllustrations: illustrations
+    };
+  };
+
+  // Handle preview completion
+  const handlePreviewComplete = (bookData) => {
+    setCompiledBook(bookData);
+    safelySetStep(STEPS.CHECKOUT);
+    return {
+      childData,
+      storyDetails,
+      storyScript,
+      characterIllustration,
+      bookIllustrations,
+      compiledBook: bookData
+    };
+  };
+
   // Function to handle option selection in the first step
   const handleOptionSelect = (option) => {
     safelySetStep(option);
+  };
+
+  // Function to go to a specific step (with validation)
+  const goToStep = (targetStep) => {
+    // First check if we have the required data for this step
+    const validateStepData = () => {
+      if (targetStep === STEPS.DETAILS && !hasRequiredChildData()) {
+        return false;
+      }
+      if (targetStep === STEPS.SCRIPT && (!hasRequiredChildData() || !hasRequiredStoryDetails())) {
+        return false;
+      }
+      if (targetStep === STEPS.ILLUSTRATION && (!hasRequiredChildData() || !hasRequiredStoryDetails() || !hasRequiredScript())) {
+        return false;
+      }
+      if (targetStep === STEPS.COMPILE && (!hasRequiredChildData() || !hasRequiredStoryDetails() || !hasRequiredScript() || !hasRequiredIllustration())) {
+        return false;
+      }
+      if (targetStep === STEPS.PREVIEW && !hasRequiredBookIllustrations()) {
+        return false;
+      }
+      if (targetStep === STEPS.CHECKOUT && !compiledBook) {
+        return false;
+      }
+      return true;
+    };
+
+    if (validateStepData()) {
+      safelySetStep(targetStep);
+      return true;
+    }
+    return false;
   };
 
   const value = {
@@ -115,15 +230,23 @@ export function StoryProvider({ children }) {
     storyDetails,
     storyScript,
     characterIllustration,
+    bookIllustrations,
+    compiledBook,
     step,
     isTransitioning,
+    history,
     handleBack,
     handlePhotoSubmit,
     handleFormSubmit,
     handleStoryDetailsSubmit,
     handleScriptComplete,
     handleIllustrationComplete,
+    handleCompileComplete,
+    handlePreviewComplete,
     handleOptionSelect,
+    goToStep,
+    // Export STEPS for use in components
+    STEPS
   };
 
   return (
