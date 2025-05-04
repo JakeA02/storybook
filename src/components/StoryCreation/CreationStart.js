@@ -40,7 +40,7 @@ export default function CreationStart() {
             </h3>
             <p className="text-center text-gray-600 mb-4">
               Fill in a form with your child's characteristics and we'll create
-              a character for them
+              a character from it
             </p>
           </div>
         </div>
