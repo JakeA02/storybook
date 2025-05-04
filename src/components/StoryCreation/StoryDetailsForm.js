@@ -9,7 +9,7 @@ export default function StoryDetailsForm() {
     childLikes: storyDetails?.childLikes || "",
     cartoonStyle: storyDetails?.cartoonStyle || "",
   });
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -111,8 +111,7 @@ export default function StoryDetailsForm() {
                 key={style.id}
                 className={`style-example cursor-pointer transition-all duration-200 rounded-lg ${
                   formData.cartoonStyle === style.id
-                    ? 
-                      "ring-2 ring-offset-1 ring-green-500 scale-105"
+                    ? "ring-2 ring-offset-1 ring-green-500 scale-105"
                     : "hover:scale-102"
                 }`}
                 onClick={() => handleStyleSelect(style.id)}
@@ -147,8 +146,10 @@ export default function StoryDetailsForm() {
           <button
             type="submit"
             disabled={!isFormValid}
-            className={`px-6 py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-white transition-transform duration-200 shadow-md font-medium ${
-              !isFormValid ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
+            className={`px-6 py-2 rounded-full text-white transition-transform duration-200 shadow-md font-medium ${
+              !isFormValid
+                ? "opacity-50 cursor-not-allowed bg-gray-400"
+                : "bg-gradient-to-r from-sky-400 to-rose-400 hover:scale-105"
             }`}
           >
             Continue
