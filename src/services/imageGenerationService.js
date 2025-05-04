@@ -1,3 +1,5 @@
+import { getStyleDescription } from "../utils";
+
 const createPrompt = (childData, storyDetails, type) => {
   const characterName = storyDetails.childName;
   const style = storyDetails.cartoonStyle || "cartoon";
@@ -22,24 +24,6 @@ const createPrompt = (childData, storyDetails, type) => {
     Do not give a background, just mock up the person as a cartoon character. 
     They should be smiling and standing, with no objects in hand. 
     Their head needs to be in full view of the frame. `;
-  }
-};
-
-// Helper function to get style descriptions (keep as is)
-const getStyleDescription = (style) => {
-  switch (style) {
-    case "disney":
-      return "Soft rounded characters, big expressive eyes, warm pastel colors, subtle shading. Like classic Bambi or Cinderella illustrations. Wholesome, magical, and heartwarming.";
-    case "seuss":
-      return "Wobbly ink lines, exaggerated features, tall skinny or short round characters, unusual architecture, bright primary colors, and playful surreal landscapes. Whimsical and quirky.";
-    case "anime":
-      return "Big sparkling eyes, soft blush cheeks, simple linework, bright pastel tones, and expressive facial reactions. Cute proportions like chibi or early Pokémon style";
-    case "modern":
-      return "Simple vector shapes, bold outlines, bright solid colors, minimal shadows. Inspired by shows like Peppa Pig or Cocomelon. Fun, clear, and toddler-friendly.";
-    case "ghibli":
-      return "Hand-painted look with soft lighting, expressive faces, detailed nature backgrounds, and gentle colors. Magical realism with a warm, peaceful feeling.";
-    default:
-      return "General cartoon style, friendly and appealing.";
   }
 };
 
@@ -78,6 +62,7 @@ const makeApiCall = async (url, options) => {
 
   const image_base64 = data.data[0].b64_json;
   const dataUri = `data:image/png;base64,${image_base64}`;
+  console.log("dataUri", dataUri);
   return dataUri;
 };
 
@@ -132,6 +117,8 @@ const editIllustrationFromPhoto = async (childData, storyDetails) => {
   formData.append("model", "gpt-image-1"); // Standard model for edits
   formData.append("n", "1");
   formData.append("size", "1024x1024");
+  formData.append("quality", "high");
+  formData.append("background", "transparent");
 
   const options = {
     method: "POST",
