@@ -35,7 +35,7 @@ const createPrompt = (childData, storyDetails, type) => {
  * @param {object} options - The options for the fetch call (method, headers, body)
  * @returns {Promise<string>} - The generated image as a base64 data URI
  */
-const makeApiCall = async (url, options) => {
+export const makeApiCall = async (url, options) => {
   const response = await fetch(url, options);
 
   if (!response.ok) {
