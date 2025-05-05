@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 // Ensure this path is correct
 import { generateCharacterIllustration } from "../../services/imageGenerationService";
 import IllustrationLoadingState from "./StoryGeneratorStates/IllustrationLoadingState";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 
 export default function StoryDetailsForm() {
   const { handleBack, handleStoryDetailsSubmit, storyDetails } = useStory();

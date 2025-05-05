@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 
 const DetailsPreview = () => {
   const { storyDetails, childData } = useStory();

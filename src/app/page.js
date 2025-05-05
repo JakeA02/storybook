@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import StoryCreationContainer from "../components/StoryCreation/StoryCreationContainer";
-import { StoryProvider } from "../context/StoryContext";
+import { StoryProvider } from "../context/index";
 import "./globals.css";
 
 export default function Home() {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 import { CreditCard, Truck, Package, Check } from "lucide-react";
 
 export default function Checkout() {

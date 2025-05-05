@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { generateStoryIllustrations } from "../../services/storyIllustrationService";
 import { makeApiCall } from "../../services/imageGenerationService";

@@ -1,4 +1,4 @@
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 import Image from "next/image";
 import { CloudUpload, Clipboard } from "lucide-react";
 

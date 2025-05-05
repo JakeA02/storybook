@@ -1,17 +1,30 @@
 import { createContext, useContext, useState, useEffect } from "react";
-
-// Define step configuration for the entire application
-export const STEPS = {
-  START: "start",
-  UPLOAD: "upload",
-  FORM: "form",
-  DETAILS: "details",
-  SCRIPT: "script",
-  ILLUSTRATION: "illustration",
-  COMPILE: "compile",
-  PREVIEW: "preview",
-  CHECKOUT: "checkout"
-};
+import { STEPS, STORAGE_KEY } from "./constants";
+import { safeStringify } from "./storageHelpers";
+import { validateStepData } from "./validationHelpers";
+import { loadInitialState, loadImagesFromIndexedDB } from "./stateInitializer";
+import { 
+  saveCharacterIllustration, 
+  saveCharacterMap, 
+  saveBookIllustrations 
+} from "./imageStorage";
+import { 
+  safelySetStep as safelySetStepHelper, 
+  handleBack as handleBackHelper,
+  goToStep as goToStepHelper
+} from "./navigationHelpers";
+import {
+  clearSavedData as clearSavedDataHelper,
+  handlePhotoSubmit as handlePhotoSubmitHelper,
+  handleFormSubmit as handleFormSubmitHelper,
+  handleStoryDetailsSubmit as handleStoryDetailsSubmitHelper,
+  handleScriptComplete as handleScriptCompleteHelper,
+  handleIllustrationComplete as handleIllustrationCompleteHelper,
+  handleCompileComplete as handleCompileCompleteHelper,
+  handlePreviewComplete as handlePreviewCompleteHelper,
+  handleOptionSelect as handleOptionSelectHelper,
+  handleCharacterMapComplete as handleCharacterMapCompleteHelper
+} from "./handlerFunctions";
 
 // Create the context
 const StoryContext = createContext(null);
@@ -27,56 +40,101 @@ export function useStory() {
 
 // Provider component
 export function StoryProvider({ children }) {
-  const [childData, setChildData] = useState(null);
-  const [storyDetails, setStoryDetails] = useState(null);
-  const [storyScript, setStoryScript] = useState(null);
-  const [characterIllustration, setCharacterIllustration] = useState(null);
-  const [bookIllustrations, setBookIllustrations] = useState([]);
-  const [compiledBook, setCompiledBook] = useState(null);
-  const [step, setStep] = useState(STEPS.START);
+  const initialState = loadInitialState();
+
+  const [childData, setChildData] = useState(initialState.childData);
+  const [storyDetails, setStoryDetails] = useState(initialState.storyDetails);
+  const [storyScript, setStoryScript] = useState(initialState.storyScript);
+  const [characterIllustration, setCharacterIllustration] = useState(initialState.characterIllustration);
+  const [bookIllustrations, setBookIllustrations] = useState(initialState.bookIllustrations);
+  const [compiledBook, setCompiledBook] = useState(initialState.compiledBook);
+  const [step, setStep] = useState(initialState.step);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [history, setHistory] = useState([STEPS.START]); // Track step history for navigation
+  const [history, setHistory] = useState(initialState.history);
+  const [characterMap, setCharacterMap] = useState(initialState.characterMap);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [storageError, setStorageError] = useState(initialState.storageError || false);
 
-  // Data validation helpers
-  const hasRequiredChildData = () => 
-    childData && childData.type && childData.data;
+  // Load images from IndexedDB on initial render
+  useEffect(() => {
+    const setters = {
+      setCharacterIllustration,
+      setCharacterMap,
+      setBookIllustrations,
+      setImagesLoaded,
+      setStorageError
+    };
+    
+    loadImagesFromIndexedDB(setters);
+  }, []);
 
-  const hasRequiredStoryDetails = () => 
-    storyDetails && storyDetails.childName;
+  // Save state to localStorage whenever relevant state changes
+  useEffect(() => {
+    // Don't save until images are loaded to prevent saving null images
+    if (!imagesLoaded) return;
+    
+    const dataToSave = {
+      childData,
+      storyDetails,
+      storyScript,
+      step,
+      history,
+      compiledBook,
+      storageError // Save the error state
+      // We don't save images in localStorage, they go to IndexedDB
+    };
+    
+    const serializedData = safeStringify(dataToSave);
+    if (serializedData) {
+      try {
+        localStorage.setItem(STORAGE_KEY, serializedData);
+        console.log("Progress state saved to localStorage");
+      } catch (error) {
+        console.error("Failed to save to localStorage:", error);
+        setStorageError(true);
+      }
+    }
+  }, [
+    childData,
+    storyDetails, 
+    storyScript, 
+    step,
+    history,
+    compiledBook,
+    imagesLoaded,
+    storageError
+  ]);
 
-  const hasRequiredScript = () => !!storyScript;
-  
-  const hasRequiredIllustration = () => !!characterIllustration;
+  // Save images to IndexedDB when they change
+  useEffect(() => {
+    if (!imagesLoaded) return;
+    saveCharacterIllustration(characterIllustration, setStorageError);
+  }, [characterIllustration, imagesLoaded]);
 
-  const hasRequiredBookIllustrations = () => 
-    Array.isArray(bookIllustrations) && bookIllustrations.length === 12;
+  // Save character map to IndexedDB when it changes
+  useEffect(() => {
+    if (!imagesLoaded) return;
+    saveCharacterMap(characterMap, setStorageError);
+  }, [characterMap, imagesLoaded]);
+
+  // Save book illustrations to IndexedDB when they change
+  useEffect(() => {
+    if (!imagesLoaded) return;
+    saveBookIllustrations(bookIllustrations, setStorageError);
+  }, [bookIllustrations, imagesLoaded]);
 
   // Validate data before proceeding to certain steps
   useEffect(() => {
-    // Validation logic for steps that require certain data
-    const validateStepData = () => {
-      if (step === STEPS.DETAILS && !hasRequiredChildData()) {
-        return STEPS.START;
-      }
-      if (step === STEPS.SCRIPT && (!hasRequiredChildData() || !hasRequiredStoryDetails())) {
-        return STEPS.DETAILS;
-      }
-      if (step === STEPS.ILLUSTRATION && (!hasRequiredChildData() || !hasRequiredStoryDetails() || !hasRequiredScript())) {
-        return STEPS.SCRIPT;
-      }
-      if (step === STEPS.COMPILE && (!hasRequiredChildData() || !hasRequiredStoryDetails() || !hasRequiredScript() || !hasRequiredIllustration())) {
-        return STEPS.ILLUSTRATION;
-      }
-      if (step === STEPS.PREVIEW && !hasRequiredBookIllustrations()) {
-        return STEPS.COMPILE;
-      }
-      if (step === STEPS.CHECKOUT && !compiledBook) {
-        return STEPS.PREVIEW;
-      }
-      return null;
-    };
-
-    const redirectStep = validateStepData();
+    const redirectStep = validateStepData(
+      step, 
+      childData, 
+      storyDetails, 
+      storyScript, 
+      characterIllustration, 
+      bookIllustrations, 
+      compiledBook
+    );
+    
     if (redirectStep) {
       console.warn(`Missing required data for ${step} step, redirecting to ${redirectStep}`);
       safelySetStep(redirectStep);
@@ -85,144 +143,116 @@ export function StoryProvider({ children }) {
 
   // Safe transition between steps with data validation and history tracking
   const safelySetStep = (nextStep) => {
-    setIsTransitioning(true);
-    
-    // Add to history if moving forward
-    if (!history.includes(nextStep)) {
-      setHistory(prevHistory => [...prevHistory, nextStep]);
-    }
-    
-    // Add a small delay to ensure state has settled
-    setTimeout(() => {
-      setStep(nextStep);
-      setIsTransitioning(false);
-    }, 50);
+    safelySetStepHelper(nextStep, setStep, setIsTransitioning, history, setHistory);
   };
 
   // Handle moving back in the story creation flow
   const handleBack = () => {
-    if (history.length > 1) {
-      // Remove current step from history and go to previous
-      setHistory(prevHistory => {
-        const newHistory = [...prevHistory];
-        newHistory.pop(); // Remove current step
-        return newHistory;
-      });
-      
-      const previousStep = history[history.length - 2];
-      if (previousStep) {
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setStep(previousStep);
-          setIsTransitioning(false);
-        }, 50);
-      }
-    }
+    handleBackHelper(history, setHistory, setStep, setIsTransitioning);
+  };
+
+  // Function to clear saved data
+  const clearSavedData = async () => {
+    await clearSavedDataHelper(
+      setChildData,
+      setStoryDetails,
+      setStoryScript,
+      setCharacterIllustration,
+      setBookIllustrations,
+      setCompiledBook,
+      setStep,
+      setHistory,
+      setCharacterMap,
+      setStorageError
+    );
   };
 
   // Handle photo upload submission
   const handlePhotoSubmit = (photo) => {
-    setChildData({ type: "photo", data: photo });
-    safelySetStep(STEPS.DETAILS);
+    handlePhotoSubmitHelper(photo, setChildData, safelySetStep);
   };
 
   // Handle form submission
   const handleFormSubmit = (formData) => {
-    setChildData({ type: "description", data: formData });
-    safelySetStep(STEPS.DETAILS);
+    handleFormSubmitHelper(formData, setChildData, safelySetStep);
   };
 
   // Handle story details form submission
   const handleStoryDetailsSubmit = (details) => {
-    setStoryDetails(details);
-    safelySetStep(STEPS.SCRIPT);
+    handleStoryDetailsSubmitHelper(details, setStoryDetails, safelySetStep);
   };
 
   // Handle script generation completion
   const handleScriptComplete = (scriptData) => {
-    setStoryScript(scriptData);
-    safelySetStep(STEPS.ILLUSTRATION);
-    return {
-      childData: childData,
-      storyDetails: storyDetails,
-      storyScript: scriptData,
-    };
+    return handleScriptCompleteHelper(
+      scriptData, 
+      setStoryScript, 
+      safelySetStep, 
+      childData, 
+      storyDetails
+    );
   };
 
   // Handle illustration generation completion
   const handleIllustrationComplete = (illustrationUrl) => {
-    setCharacterIllustration(illustrationUrl);
-    safelySetStep(STEPS.COMPILE);
-    return {
-      childData: childData,
-      storyDetails: storyDetails,
-      storyScript: storyScript,
-      characterIllustration: illustrationUrl,
-    };
+    return handleIllustrationCompleteHelper(
+      illustrationUrl, 
+      setCharacterIllustration, 
+      safelySetStep,
+      childData,
+      storyDetails,
+      storyScript
+    );
   };
 
   // Handle book compilation completion
   const handleCompileComplete = (illustrations) => {
-    setBookIllustrations(illustrations);
-    safelySetStep(STEPS.PREVIEW);
-    return {
+    return handleCompileCompleteHelper(
+      illustrations, 
+      setBookIllustrations, 
+      safelySetStep,
       childData,
       storyDetails,
       storyScript,
-      characterIllustration,
-      bookIllustrations: illustrations
-    };
+      characterIllustration
+    );
   };
 
   // Handle preview completion
   const handlePreviewComplete = (bookData) => {
-    setCompiledBook(bookData);
-    safelySetStep(STEPS.CHECKOUT);
-    return {
+    return handlePreviewCompleteHelper(
+      bookData, 
+      setCompiledBook, 
+      safelySetStep,
       childData,
       storyDetails,
       storyScript,
       characterIllustration,
-      bookIllustrations,
-      compiledBook: bookData
-    };
+      bookIllustrations
+    );
   };
 
   // Function to handle option selection in the first step
   const handleOptionSelect = (option) => {
-    safelySetStep(option);
+    handleOptionSelectHelper(option, safelySetStep);
+  };
+
+  const handleCharacterMapComplete = (characterMapData) => {
+    handleCharacterMapCompleteHelper(characterMapData, setCharacterMap, safelySetStep);
   };
 
   // Function to go to a specific step (with validation)
   const goToStep = (targetStep) => {
-    // First check if we have the required data for this step
-    const validateStepData = () => {
-      if (targetStep === STEPS.DETAILS && !hasRequiredChildData()) {
-        return false;
-      }
-      if (targetStep === STEPS.SCRIPT && (!hasRequiredChildData() || !hasRequiredStoryDetails())) {
-        return false;
-      }
-      if (targetStep === STEPS.ILLUSTRATION && (!hasRequiredChildData() || !hasRequiredStoryDetails() || !hasRequiredScript())) {
-        return false;
-      }
-      if (targetStep === STEPS.COMPILE && (!hasRequiredChildData() || !hasRequiredStoryDetails() || !hasRequiredScript() || !hasRequiredIllustration())) {
-        return false;
-      }
-      if (targetStep === STEPS.PREVIEW && !hasRequiredBookIllustrations()) {
-        return false;
-      }
-      if (targetStep === STEPS.CHECKOUT && !compiledBook) {
-        return false;
-      }
-      return true;
-    };
-
-    if (validateStepData()) {
-      safelySetStep(targetStep);
-      return true;
-    }
-    return false;
+    return goToStepHelper(
+      targetStep, 
+      childData, 
+      storyDetails, 
+      storyScript, 
+      characterIllustration, 
+      bookIllustrations, 
+      compiledBook,
+      safelySetStep
+    );
   };
 
   const value = {
@@ -235,6 +265,7 @@ export function StoryProvider({ children }) {
     step,
     isTransitioning,
     history,
+    characterMap,
     handleBack,
     handlePhotoSubmit,
     handleFormSubmit,
@@ -245,6 +276,10 @@ export function StoryProvider({ children }) {
     handlePreviewComplete,
     handleOptionSelect,
     goToStep,
+    handleCharacterMapComplete,
+    clearSavedData,
+    imagesLoaded,
+    storageError,
     // Export STEPS for use in components
     STEPS
   };

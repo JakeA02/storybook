@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 import DetailsPreview from "./DetailsPreview";
 import LoadingState from "./StoryGeneratorStates/LoadingState";
 import ErrorState from "./StoryGeneratorStates/ErrorState";

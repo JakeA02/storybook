@@ -1,4 +1,4 @@
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 import CreationStart from "./CreationStart";
 import PhotoUpload from "./PhotoUpload";
 import ChildDescriptionForm from "./ChildDescriptionForm";

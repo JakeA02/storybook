@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useStory } from "../../context/StoryContext";
+import { useStory } from "../../context/index";
 import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 
 // Helper component for rendering a single page (can be blank or content)
@@ -209,7 +209,7 @@ export default function BookPreview({ onComplete }) {
     <div
       className={`book-preview-container flex flex-col h-full ${
         isFullscreen
-          ? "fixed inset-0 z-50 bg-gray-100 p-4 sm:p-8"
+          ? "fixed inset-0 z-50 bg-sky-500 p-4 sm:p-8"
           : "p-4 md:p-8"
       }`}
     >

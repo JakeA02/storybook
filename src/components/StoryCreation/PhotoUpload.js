@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { useStory } from "../../context/StoryContext"; // Assuming this context hook is correctly set up
+import { useStory } from "../../context/index";
 
 export default function PhotoUpload() {
   const { handleBack, handlePhotoSubmit } = useStory(); // Assuming these functions are passed correctly
