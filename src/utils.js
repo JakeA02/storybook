@@ -6,8 +6,8 @@ export const getStyleDescription = (style) => {
       return "Wobbly ink lines, exaggerated features, tall skinny or short round characters, unusual architecture, bright primary colors, and playful surreal landscapes. Whimsical and quirky.";
     case "anime":
       return "Big sparkling eyes, soft blush cheeks, simple linework, bright pastel tones, and expressive facial reactions. Cute proportions like chibi or early Pokémon style";
-    case "modern":
-      return "Simple vector shapes, bold outlines, bright solid colors, minimal shadows. Inspired by shows like Peppa Pig or Cocomelon. Fun, clear, and toddler-friendly.";
+    case "comic":
+      return "Clean black ink outlines, flat colors, minimal shading, expressive facial features. Inspired by Peanuts or Calvin and Hobbes—simple, charming, and character-driven.";
     case "ghibli":
       return "Hand-painted look with soft lighting, expressive faces, detailed nature backgrounds, and gentle colors. Magical realism with a warm, peaceful feeling.";
     default:

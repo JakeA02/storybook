@@ -5,7 +5,7 @@ export default function StoryStylesCard({ onClose }) {
     { name: "Disney", id: "Disney" },
     { name: "Dr. Seuss", id: "Seuss" },
     { name: "Anime", id: "Anime" },
-    { name: "Modern Cartoon", id: "Modern" },
+    { name: "Comic", id: "Comic" },
     { name: "Ghibli", id: "Ghibli" },
   ];
 

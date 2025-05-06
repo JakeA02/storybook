@@ -38,7 +38,7 @@ export default function StoryDetailsForm() {
     { name: "Disney", id: "disney" },
     { name: "Dr. Seuss", id: "seuss" },
     { name: "Anime", id: "anime" },
-    { name: "Modern Cartoon", id: "modern" },
+    { name: "Comic", id: "comic" },
     { name: "Ghibli", id: "ghibli" },
   ];
 
