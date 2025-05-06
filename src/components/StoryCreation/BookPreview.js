@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useStory } from "../../context/index";
-import { ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Grid, Book, Save } from "lucide-react";
+import ImageGallery from "./ImageGallery";
+import DownloadImagesButton from "./DownloadImagesButton";
 
 // Helper component for rendering a single page (can be blank or content)
 function Page({ pageData, isLeft }) {
@@ -47,6 +49,7 @@ export default function BookPreview({ onComplete }) {
   const { storyScript, storyDetails, bookIllustrations } = useStory();
   const [currentSpreadIndex, setCurrentSpreadIndex] = useState(0); // Index of the current spread
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [viewMode, setViewMode] = useState("book"); // "book" or "gallery"
 
   // Create book pages data structure (same as before)
   const bookPages = useMemo(() => {
@@ -199,7 +202,7 @@ export default function BookPreview({ onComplete }) {
       <div className="p-4 md:p-8 text-center">
         <h2 className="text-2xl font-bold mb-2">Book Preview</h2>
         <p className="text-gray-600">Generating illustrations...</p>
-        <Loader2 className="w-10 h-10 animate-spin" />
+        <div className="w-10 h-10 border-4 border-t-sky-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mt-4"></div>
       </div>
     );
   }
@@ -221,123 +224,137 @@ export default function BookPreview({ onComplete }) {
         </p>
       </div>
 
-      {/* --- Book Viewer --- */}
-      <div
-        // This wrapper grows to fill space in fullscreen and centers the book
-        className={`book-viewer-outer-wrapper relative w-full mx-auto mb-6 ${
-          isFullscreen
-            ? "flex-grow flex items-center justify-center"
-            : "max-w-5xl" // Wider max-width for spread
-        }`}
-      >
-        {/* Inner wrapper for aspect ratio and centering the Prev/Next buttons */}
-        <div className="book-viewer-inner-wrapper relative w-full">
-          {/* The Book Spread */}
-          <div className="book-spread flex items-stretch shadow-xl border border-gray-300 rounded-lg overflow-hidden">
-            {/* Left Page Wrapper (Optional but good for controlling width/flex properties)
-                Using flex-1 tells the page to grow and shrink as needed.
-                Using w-1/2 gives it a base width. Adjust as needed.
-              */}
-            <div className="w-1/2 flex-shrink-0 relative">
-              {" "}
-              {/* Added wrapper */}
-              <Page pageData={leftPageData} isLeft={true} />
-            </div>
+      {/* View mode toggle */}
+      <div className="flex justify-center mb-6 gap-4">
+        <button 
+          onClick={() => setViewMode("book")} 
+          className={`flex items-center gap-2 px-4 py-2 rounded-md ${viewMode === "book" ? "bg-sky-500 text-white" : "bg-white-200"}`}
+        >
+          <Book className="w-4 h-4" />
+          <span>Book View</span>
+        </button>
+        <button 
+          onClick={() => setViewMode("gallery")} 
+          className={`flex items-center gap-2 px-4 py-2 rounded-md ${viewMode === "gallery" ? "bg-sky-500 text-white" : "bg-white-200"}`}
+        >
+          <Grid className="w-4 h-4" />
+          <span>Gallery View</span>
+        </button>
+      </div>
 
-            {/* Spine - Give it a small width */}
-            <div className="book-spine w-1 sm:w-2 bg-gray-300 flex-shrink-0"></div>
+      {/* Download all images button */}
+      <div className="flex justify-center mb-6">
+        <DownloadImagesButton illustrations={bookIllustrations} storyTitle={storyDetails?.title || `${storyDetails?.childName}'s Story`} />
+      </div>
 
-            {/* Right Page Wrapper
-             */}
-            <div className="w-1/2 flex-shrink-0 relative">
-              {" "}
-              {/* Added wrapper */}
-              <Page pageData={rightPageData} isLeft={false} />
+      {viewMode === "gallery" ? (
+        <ImageGallery images={bookIllustrations} />
+      ) : (
+        <>
+          {/* --- Book Viewer --- */}
+          <div
+            className={`book-viewer-outer-wrapper relative w-full mx-auto mb-6 ${
+              isFullscreen
+                ? "flex-grow flex items-center justify-center"
+                : "max-w-5xl" // Wider max-width for spread
+            }`}
+          >
+            {/* Inner wrapper for aspect ratio and centering the Prev/Next buttons */}
+            <div className="book-viewer-inner-wrapper relative w-full">
+              {/* The Book Spread */}
+              <div className="book-spread flex items-stretch shadow-xl border border-gray-300 rounded-lg overflow-hidden">
+                {/* Left Page Wrapper */}
+                <div className="w-1/2 flex-shrink-0 relative">
+                  <Page pageData={leftPageData} isLeft={true} />
+                </div>
+
+                {/* Spine - Give it a small width */}
+                <div className="book-spine w-1 sm:w-2 bg-gray-300 flex-shrink-0"></div>
+
+                {/* Right Page Wrapper */}
+                <div className="w-1/2 flex-shrink-0 relative">
+                  <Page pageData={rightPageData} isLeft={false} />
+                </div>
+              </div>
+
+              {/* Prev/Next Buttons - Positioned absolutely relative to inner-wrapper */}
+              {currentSpreadIndex > 0 && (
+                <button
+                  onClick={handlePrevPage}
+                  className="absolute left-[-15px] sm:left-[-25px] md:left-[-40px] top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 z-20 transition-colors"
+                  aria-label="Previous Spread"
+                >
+                  <ChevronLeft className="w-6 h-6 text-gray-600" />
+                </button>
+              )}
+
+              {currentSpreadIndex < numSpreads - 1 && (
+                <button
+                  onClick={handleNextPage}
+                  className="absolute right-[-15px] sm:right-[-25px] md:right-[-40px] top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 z-20 transition-colors"
+                  aria-label="Next Spread"
+                >
+                  <ChevronRight className="w-6 h-6 text-gray-600" />
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Prev/Next Buttons - Positioned absolutely relative to inner-wrapper */}
-          {currentSpreadIndex > 0 && (
+          {/* --- Navigation Controls --- */}
+          <div className="book-navigation-controls flex justify-center items-center gap-2 sm:gap-4 mb-6 px-4 flex-shrink-0">
+            <button
+              onClick={() => setCurrentSpreadIndex(0)}
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={currentSpreadIndex === 0}
+            >
+              First
+            </button>
             <button
               onClick={handlePrevPage}
-              className="absolute left-[-15px] sm:left-[-25px] md:left-[-40px] top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 z-20 transition-colors"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              disabled={currentSpreadIndex === 0}
               aria-label="Previous Spread"
             >
-              <ChevronLeft className="w-6 h-6 text-gray-600" />
+              <ChevronLeft className="w-4 h-4 text-gray-500 hidden sm:inline" />
+              <span>Prev</span>
             </button>
-          )}
 
-          {currentSpreadIndex < numSpreads - 1 && (
+            {/* Page Indicator */}
+            <div className="text-center text-sm text-gray-600 mx-2 whitespace-nowrap font-medium">
+              {pageIndicatorText()}
+            </div>
+
             <button
               onClick={handleNextPage}
-              className="absolute right-[-15px] sm:right-[-25px] md:right-[-40px] top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 z-20 transition-colors"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              disabled={currentSpreadIndex >= numSpreads - 1}
               aria-label="Next Spread"
             >
-              <ChevronRight className="w-6 h-6 text-gray-600" />
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4 text-gray-500 hidden sm:inline" />
             </button>
-          )}
-        </div>
-      </div>
+            <button
+              onClick={() => setCurrentSpreadIndex(numSpreads - 1)}
+              className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={currentSpreadIndex === numSpreads - 1}
+            >
+              Last
+            </button>
+          </div>
 
-      {/* --- Navigation Controls --- */}
-      {/* Conditionally render controls or place them fixed at bottom in fullscreen? */}
-      {/* For simplicity, keep them below the book for now */}
-      <div className="book-navigation-controls flex justify-center items-center gap-2 sm:gap-4 mb-6 px-4 flex-shrink-0">
-        <button
-          onClick={() => setCurrentSpreadIndex(0)}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={currentSpreadIndex === 0}
-        >
-          First
-        </button>
-        <button
-          onClick={handlePrevPage}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-          disabled={currentSpreadIndex === 0}
-          aria-label="Previous Spread"
-        >
-          <ChevronLeft className="w-4 h-4 text-gray-500 hidden sm:inline" />
-          <span>Prev</span>
-        </button>
-
-        {/* Page Indicator */}
-        <div className="text-center text-sm text-gray-600 mx-2 whitespace-nowrap font-medium">
-          {pageIndicatorText()}
-          {/* Spread {currentSpreadIndex + 1} of {numSpreads} */}
-        </div>
-
-        <button
-          onClick={handleNextPage}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-          disabled={currentSpreadIndex >= numSpreads - 1}
-          aria-label="Next Spread"
-        >
-          <span>Next</span>
-          <ChevronRight className="w-4 h-4 text-gray-500 hidden sm:inline" />
-        </button>
-        <button
-          onClick={() => setCurrentSpreadIndex(numSpreads - 1)}
-          className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base hover:bg-rose-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={currentSpreadIndex === numSpreads - 1}
-        >
-          Last
-        </button>
-      </div>
-
-      {/* --- Action Controls --- */}
-      {/* Placed below navigation, flex-shrink prevents them from overlapping book in flex layout */}
-      <div className="action-controls flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 flex-shrink-0">
-        <button
-          onClick={handleFullscreen}
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-rose-400 w-full sm:w-auto"
-        >
-          {isFullscreen ? "Exit Fullscreen" : "View Fullscreen"}
-        </button>
-        {/* Add other controls if needed */}
-      </div>
+          {/* --- Action Controls --- */}
+          <div className="action-controls flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 flex-shrink-0">
+            <button
+              onClick={handleFullscreen}
+              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-rose-400 w-full sm:w-auto"
+            >
+              {isFullscreen ? "Exit Fullscreen" : "View Fullscreen"}
+            </button>
+          </div>
+        </>
+      )}
 
       {/* --- Finalize Section --- */}
-      {/* Use margin-top auto only in fullscreen flex layout to push to bottom */}
       <div
         className={`text-center flex-shrink-0 ${
           isFullscreen ? "mt-auto pt-4" : "mt-8"
