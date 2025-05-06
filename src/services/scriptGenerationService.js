@@ -15,74 +15,50 @@ export const generateStoryScript = async (storyDetails) => {
   // Stanza 1  
   // In a village where tales of princesses swirled,  
   // Lived a boy named Johnny, with a heart full of cheer.  
-  // He dreamed of their castles, their flags all unfurled,  
-  // Wishing to meet them, his wish was sincere.  
 
   // Stanza 2  
   // One sunny morning, he set off to explore,  
   // With his backpack packed and a map in his hand.  
-  // He dreamed of a princess who lived by the shore,  
-  // And he vowed to treat her with respect so grand.  
 
   // Stanza 3  
   // As he wandered through woods, he heard a soft song,  
   // It led him to a glade where the flowers bloomed bright.  
-  // There stood a young princess, her smile felt so strong,  
-  // Johnny knew in that moment, he'd treat her just right.  
 
   // Stanza 4  
-  // “Hello, dear princess!” he called with delight,  
-  // “I've come from afar, just to see you today.”  
-  // With kindness and grace, he spoke with pure light,  
-  // Respecting her spirit in every word he’d say.  
+  // "Hello, dear princess!" he called with delight,  
+  // "I've come from afar, just to see you today."  
 
   // Stanza 5  
   // The princess smiled gently, her eyes full of glee,  
-  // “I've heard of your journey, so brave and so true.  
-  // But tell me, young Johnny, how will you agree,  
-  // To treat me with honor in all that you do?”  
+  // "I've heard of your journey, so brave and so true.  
 
   // Stanza 6  
   // Johnny thought for a moment, then answered with care,  
-  // “Respect is a treasure, it shines bright and clear.  
-  // I’ll listen and learn, with kindness to share,  
-  // For every princess deserves to feel dear.”  
+  // "Respect is a treasure, it shines bright and clear.  
 
   // Stanza 7  
   // They danced through the glade, under skies oh so blue,  
   // With laughter and joy, they spun round and round.  
-  // Johnny learned that respect in friendship is true,  
-  // It builds a strong bond that’s forever profound.  
 
   // Stanza 8  
   // But then came a storm, dark clouds filled the sky,  
   // The princess grew worried, her heart filled with fear.  
-  // “Don’t worry, dear friend, I’ll always stand by,  
-  // With respect in our hearts, we have nothing to fear!”  
 
   // Stanza 9  
   // Together they faced the wild winds and the rain,  
   // Johnny held her hand, a promise he made.  
-  // “Through thick and through thin, we’ll share joy and pain,  
-  // With respect as our guide, we’ll never let shade.”  
 
   // Stanza 10  
   // When the storm finally passed, a rainbow appeared,  
   // The princess was grateful, her smile shining bright.  
-  // “Thank you, dear Johnny, my heart is now cleared,  
-  // For respect has brought us together in light.”  
 
   // Stanza 11  
   // As the sun set low, casting gold on the glen,  
   // Johnny hugged the princess, a bond they had formed.  
-  // “Respect is the magic that lives in all men,  
-  // It nurtures our hearts, keeps our friendships warmed.”  
 
   // Stanza 12  
   // So remember, dear friends, as you go on your way,  
-  // Respect is a treasure, it grows day by day.  
-  // With kindness and love, let your heart always sway,  
-  // And like Johnny and princess, let friendship hold sway.`;
+  // Respect is a treasure, it grows day by day.`;
   // }
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -96,7 +72,8 @@ export const generateStoryScript = async (storyDetails) => {
         {
           role: "system",
           content: `You are an expert children's story writer who specializes in creating engaging, intriguing stories following specific structural requirements. 
-            Your task is to create a story script. Your scripts have two main characters, and up to two supporting characters, nothing more. 
+            Your task is to create a story script. Your scripts have two main characters, and up to one supporting character, nothing more. 
+            Every stanza should mention the main character at least once.
             Provide just the script and it's title, nothing more.`,
         },
         {
