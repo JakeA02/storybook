@@ -101,7 +101,7 @@ export default function BookCompilation({ onComplete }) {
     formData.append("prompt", getCharacterMapPrompt(storyScript, storyDetails));
     formData.append("n", "1");
     formData.append("size", "1024x1024");
-    formData.append("quality", "low");
+    formData.append("quality", "high");
     formData.append("image", image);
 
     const options = {
