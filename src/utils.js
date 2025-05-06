@@ -15,7 +15,7 @@ export const getStyleDescription = (style) => {
   }
 };
 export const getTextExampleImage = (style) => {
-    return `images/${style}-text-example.png`;
+    return `images/TextExemplars/${style}-text-example.png`;
 };
 /**
  * Converts a base64 encoded string to a Blob object.
