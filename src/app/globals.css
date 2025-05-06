@@ -221,7 +221,7 @@ label {
   color: var(--color-text);
 }
 
-input[type="text"],
+
 input[type="email"], /* Add other input types as needed */
 select,
 textarea {
@@ -331,3 +331,81 @@ textarea:focus {
       width: 100%; /* Make buttons full width when stacked */
    }
 }
+
+.book-page {
+  background-color: #fdfaf3; /* A common creamy off-white paper color */
+  /* You can keep the border defined on book-spread or add a subtle one here */
+  /* border: 1px solid rgba(0, 0, 0, 0.08); */
+  position: relative; /* Ensure positioning context for page numbers etc. */
+  height: 100%; /* Ensure page fills its container */
+  width: 100%;
+}
+
+/* Specific styles for blank pages (if needed, often just inherits .book-page) */
+.book-page-blank {
+  /* Currently inherits the background from .book-page. */
+  /* You could add a very subtle texture or pattern if desired, */
+  /* but often keeping it simple is best. */
+  /* Example: background-image: url('/path/to/subtle-paper-texture.png'); */
+}
+
+/* Enhancements for the overall book structure (using your existing classes) */
+
+/* The container for the two-page view */
+.book-spread {
+  /* Adds a shadow around the entire open book */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background-color: #888; /* Background color for the area behind/between pages if needed */
+  /* Consider adding perspective for potential 3D effects later */
+  /* perspective: 1500px; */
+}
+
+/* Styling for the left page to simulate curving into the spine */
+.page-left {
+  /* Inset shadow on the right edge (near the spine) */
+  box-shadow: inset -7px 0 10px -6px rgba(0, 0, 0, 0.15);
+  border-top-left-radius: 0.25rem; /* Match parent .rounded-lg if needed */
+  border-bottom-left-radius: 0.25rem; /* Match parent .rounded-lg if needed */
+}
+
+/* Styling for the right page to simulate curving into the spine */
+.page-right {
+  /* Inset shadow on the left edge (near the spine) */
+  box-shadow: inset 7px 0 10px -6px rgba(0, 0, 0, 0.15);
+  border-top-right-radius: 0.25rem; /* Match parent .rounded-lg if needed */
+  border-bottom-right-radius: 0.25rem; /* Match parent .rounded-lg if needed */
+}
+
+/* Subtle enhancement for the spine */
+.book-spine {
+  /* Already has bg-gray-300 from Tailwind. You could add a subtle gradient or inner shadow */
+   background-image: linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0.05), rgba(0,0,0,0.1));
+  /* Optional: Add a slight inner shadow to the spine itself */
+   box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+}
+
+/* Optional: Style page numbers consistently */
+.page-number {
+  font-family: 'Times New Roman', Times, serif; /* Classic book font */
+  color: #555;
+  position: absolute;
+  bottom: 0.75rem; /* Adjust as needed */
+  font-size: 0.7rem; /* Small page numbers */
+}
+
+/* Adjust position based on page side */
+.page-left .page-number {
+  left: 0.75rem; /* Number on the outer edge */
+}
+
+.page-right .page-number {
+  right: 0.75rem; /* Number on the outer edge */
+}
+
+/* Ensure images don't accidentally get the inset shadow applied */
+.book-page img {
+   box-shadow: none !important;
+}
+
+/* Import session management styles */
+@import '../styles/session.css';
