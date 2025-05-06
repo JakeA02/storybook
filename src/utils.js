@@ -14,7 +14,9 @@ export const getStyleDescription = (style) => {
       return "General cartoon style, friendly and appealing.";
   }
 };
-
+export const getTextExampleImage = (style) => {
+    return `images/${style}-text-example.png`;
+};
 /**
  * Converts a base64 encoded string to a Blob object.
  * @param {string} base64 - The base64 encoded string (without the data URI prefix).

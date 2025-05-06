@@ -3,8 +3,11 @@
  * Handles character consistency and proper text formatting
  */
 
-import { getStyleDescription } from "../utils";
-import { base64ToBlob } from "../utils";
+import {
+  getStyleDescription,
+  getTextExampleImage,
+  base64ToBlob,
+} from "../utils";
 
 /**
  * Creates prompt for story page illustration
@@ -20,16 +23,15 @@ const createStoryPagePrompt = (stanza, storyDetails, pageNumber) => {
 
   return `Create a ${style} style (${styleDesc}) storybook illustration for a children's story. 
   I've attached a character map reference with all the characters in a story, and your stanza is only one page of the story. 
-  Do not include any characters that are not explicity mentioned in the stanza. 
+
+  Instead of including all the characters in the character map, only include characters that are explicity mentioned in the stanza. 
 
   Scene description: Illustrate the following stanza for page ${pageNumber}: ###${stanza}###
   
-  The scene should be colorful, engaging, and appropriate for a children's book about ${storyTheme}.
+  The scene and layout should be colorful, engaging, and appropriate for a children's book about ${storyTheme}.
   
-  The text from the stanza must be included in the illustration. The text should be dark, high contrast, and large enough for easy reading by children and parents. Use well-spaced lines.
-  Ensure the text is fully within the image frame, with a clear margin from all edges. Do not allow the text to overlap any important visual elements. Ensure a margin of at least 10% of the image width/height from the edges for all text. The overall layout should feel balanced and suitable for a printed children's book page.
-
-  --no text overlapping edges, --no text cut off, --no text outside the illustration boundaries
+  The entire text from the stanza must be included in the illustration. The text should start at the top of the 
+  image and blend into the scene. I've attached a reference image from another cartoon as an example of how the text should be placed.
   
   Make sure the all the characters are clearly recognizable and consistent with the reference image.`;
 };
@@ -84,32 +86,45 @@ const generateSinglePageIllustration = async (
   storyDetails,
   pageNumber
 ) => {
-  const prompt = createStoryPagePrompt(
-    stanza,
-    storyDetails,
-    pageNumber
-  );
+  const prompt = createStoryPagePrompt(stanza, storyDetails, pageNumber);
   console.log("prompt", prompt);
   const url = "https://api.openai.com/v1/images/edits";
 
   // Extract base64 data from the URI by removing the prefix
   let characterMapBase64 = null;
-  if (characterMapUri && typeof characterMapUri === 'string' && characterMapUri.includes('base64')) {
+  if (
+    characterMapUri &&
+    typeof characterMapUri === "string" &&
+    characterMapUri.includes("base64")
+  ) {
     characterMapBase64 = characterMapUri.replace(
       /^data:image\/\w+;base64,/,
       ""
     );
   }
 
-  const imageBlob = base64ToBlob(characterMapBase64, "image/png");
+  const characterMapImage = base64ToBlob(characterMapBase64, "image/png");
   const formData = new FormData();
-
-  formData.append("model", "gpt-image-1");
-  formData.append("prompt", prompt);
-  formData.append("n", "1");
-  formData.append("size", "1024x1024");
-  formData.append("quality", "low");
-  formData.append("image", imageBlob);
+  const imageFetch = await fetch(getTextExampleImage(storyDetails.cartoonStyle));
+  const referenceImageBlob = await imageFetch.blob();
+  
+  // Structure for the JSON payload
+  const requestBody = {
+    model: "gpt-image-1",
+    prompt: prompt,
+    n: 1,
+    size: "1024x1024",
+    quality: "high"
+  };
+  
+  // Add files to formData using array syntax
+  formData.append("image[]", characterMapImage, "character_map.png");
+  formData.append("image[]", referenceImageBlob, "reference_image.png");
+  
+  // Add JSON payload as a string
+  Object.entries(requestBody).forEach(([key, value]) => {
+    formData.append(key, value.toString());
+  });
 
   const options = {
     method: "POST",
