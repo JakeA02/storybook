@@ -20,6 +20,7 @@ const createStoryPagePrompt = (stanza, storyDetails, pageNumber) => {
   const style = storyDetails.cartoonStyle || "cartoon";
   const styleDesc = getStyleDescription(style);
   const storyTheme = storyDetails.storyTheme || "adventure";
+  const childLikes = storyDetails.childLikes || "toys";
 
   return `Create a ${style} style (${styleDesc}) storybook illustration for a children's story. 
   I've attached a character map reference with all the characters in a story, and your stanza is only one page of the story. 
@@ -28,7 +29,9 @@ const createStoryPagePrompt = (stanza, storyDetails, pageNumber) => {
 
   Scene description: Illustrate the following stanza for page ${pageNumber}: ###${stanza}###
   
-  The scene and layout should be colorful, engaging, and appropriate for a children's book about ${storyTheme}.
+  The scene and layout should be colorful, engaging, and appropriate for a children's book. 
+  
+  The theme of the whole story is ${storyTheme}, and the child likes ${childLikes}, which should be used for reference if the stanza content is nuanced or unclear.
   
   The entire text from the stanza must be included in the illustration. The text should start at the top of the 
   image and blend into the scene. I've attached a reference image from another cartoon as an example of how the text should be placed.
@@ -105,22 +108,24 @@ const generateSinglePageIllustration = async (
 
   const characterMapImage = base64ToBlob(characterMapBase64, "image/png");
   const formData = new FormData();
-  const imageFetch = await fetch(getTextExampleImage(storyDetails.cartoonStyle));
+  const imageFetch = await fetch(
+    getTextExampleImage(storyDetails.cartoonStyle)
+  );
   const referenceImageBlob = await imageFetch.blob();
-  
+
   // Structure for the JSON payload
   const requestBody = {
     model: "gpt-image-1",
     prompt: prompt,
     n: 1,
     size: "1024x1024",
-    quality: "high"
+    quality: "low",
   };
-  
+
   // Add files to formData using array syntax
   formData.append("image[]", characterMapImage, "character_map.png");
   formData.append("image[]", referenceImageBlob, "reference_image.png");
-  
+
   // Add JSON payload as a string
   Object.entries(requestBody).forEach(([key, value]) => {
     formData.append(key, value.toString());
