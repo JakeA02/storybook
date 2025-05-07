@@ -62,7 +62,6 @@ export const makeApiCall = async (url, options) => {
 
   const image_base64 = data.data[0].b64_json;
   const dataUri = `data:image/png;base64,${image_base64}`;
-  console.log("dataUri", dataUri);
   return dataUri;
 };
 

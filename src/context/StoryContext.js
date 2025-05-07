@@ -88,7 +88,7 @@ export function StoryProvider({ children }) {
     if (serializedData) {
       try {
         localStorage.setItem(STORAGE_KEY, serializedData);
-        console.log("Progress state saved to localStorage");
+        
       } catch (error) {
         console.error("Failed to save to localStorage:", error);
         setStorageError(true);

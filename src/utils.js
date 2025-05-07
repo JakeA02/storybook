@@ -26,7 +26,6 @@ export const getTextExampleImage = (style) => {
  */
 export const base64ToBlob = (base64, mimeType) => {
   // If base64 is null, undefined, or empty, return a minimal valid blob
-  console.log("base64", base64.slice(0, 100));
   if (!base64) {
     // Return a small empty blob as fallback
     return new Blob([], { type: mimeType });

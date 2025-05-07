@@ -113,25 +113,21 @@ export default function StoryCreationContainer() {
   // Wrapper for handleScriptComplete to call onComplete with the result
   const handleScriptCompleteWrapper = (editedScript) => {
     const result = handleScriptComplete(editedScript);
-    console.log("Story script complete:", result);
   };
 
   // Wrapper for handleIllustrationComplete to call onComplete with the result
   const handleIllustrationCompleteWrapper = (illustrationUrl) => {
     const result = handleIllustrationComplete(illustrationUrl);
-    console.log("Illustration complete:", result);
   };
 
   // Wrapper for compile completion
   const handleCompileCompleteWrapper = (illustrations) => {
     const result = handleCompileComplete(illustrations);
-    console.log("Compilation complete:", result);
   };
 
   // Wrapper for preview completion
   const handlePreviewCompleteWrapper = (bookData) => {
     const result = handlePreviewComplete(bookData);
-    console.log("Preview complete:", result);
   };
 
   // Loading component

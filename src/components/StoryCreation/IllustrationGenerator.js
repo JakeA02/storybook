@@ -25,7 +25,6 @@ export default function IllustrationGenerator({ onComplete }) {
       storyDetails.childName;
     
     if (isDataValid && !isLoading && !generationRequestedRef.current) {
-      console.log("Data is valid, calling handleGenerateIllustration...");
       generationRequestedRef.current = true;
       handleGenerateIllustration();
     } else if (!isDataValid && !generationRequestedRef.current) {
@@ -49,7 +48,6 @@ export default function IllustrationGenerator({ onComplete }) {
     setIllustrationDataUri(null);
 
     try {
-      console.log("Generating illustration using:", { childData, storyDetails });
       const dataUri = await generateCharacterIllustration(
         childData,
         storyDetails

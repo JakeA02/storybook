@@ -73,7 +73,7 @@ export const generateStoryScript = async (storyDetails) => {
           role: "system",
           content: `You are an expert children's story writer who specializes in creating engaging, intriguing stories following specific structural requirements. 
             Your task is to create a story script. Your scripts have two main characters, and up to one supporting character, nothing more. 
-            Every stanza should mention the main character at least once.
+            Every stanza should mention the main character (with their name)at least once. The script should use children's language and simple words, and need not rhyme.
             Provide just the script and it's title, nothing more.`,
         },
         {
@@ -101,7 +101,6 @@ export const generateStoryScript = async (storyDetails) => {
   if (!generatedScript) {
     throw new Error("No script content received from API.");
   }
-  console.log(generatedScript);
   return generatedScript;
 };
 

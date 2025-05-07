@@ -7,7 +7,6 @@ export const saveCharacterIllustration = async (characterIllustration, setStorag
   if (characterIllustration) {
     try {
       await storeImage(IMAGE_KEYS.CHARACTER, characterIllustration);
-      console.log("Character illustration saved to IndexedDB");
     } catch (error) {
       console.error("Failed to save character illustration:", error);
       
@@ -27,7 +26,6 @@ export const saveCharacterMap = async (characterMap, setStorageError) => {
   if (characterMap) {
     try {
       await storeImage(IMAGE_KEYS.CHARACTER_MAP, characterMap);
-      console.log("Character map saved to IndexedDB");
     } catch (error) {
       console.error("Failed to save character map:", error);
       
@@ -67,7 +65,6 @@ export const saveBookIllustrations = async (bookIllustrations, setStorageError) 
           }
         }
       }
-      console.log("Book illustrations saved to IndexedDB");
     } catch (error) {
       console.error("Failed to save book illustrations:", error);
       

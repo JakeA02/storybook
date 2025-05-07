@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useStory } from "../../context/index";
-import { ChevronLeft, ChevronRight, Download, Grid, Book, Save } from "lucide-react";
+import { ChevronLeft, ChevronRight, Grid, Book } from "lucide-react";
 import ImageGallery from "./ImageGallery";
 import DownloadImagesButton from "./DownloadImagesButton";
 
@@ -365,7 +365,7 @@ export default function BookPreview({ onComplete }) {
           className="px-6 py-3 bg-gradient-to-r from-sky-400 to-rose-400 text-white rounded-full hover:scale-105 transition-transform duration-200 shadow-md font-medium flex items-center gap-2 mx-auto"
         >
           <span>Finalize Book</span>
-          <Download className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5" />
         </button>
         <p className="text-sm text-gray-500 mt-2">
           Once finalized, you'll proceed to checkout

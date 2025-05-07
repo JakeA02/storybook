@@ -20,7 +20,6 @@ export const clearSavedData = async (
   // Clear IndexedDB
   try {
     await clearImageStore();
-    console.log("Image store cleared successfully");
   } catch (error) {
     console.error("Error clearing image store:", error);
   }

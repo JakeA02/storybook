@@ -30,7 +30,6 @@ export const reduceHighPriorityImageQuality = (dataURI) => {
   
   // For now, we'll just trim the data URI if it's very long to simulate reduction
   if (dataURI.length > 500000) { // Over ~500KB
-    console.log("Reducing high priority image size");
     return dataURI.substring(0, 500000) + dataURI.substring(dataURI.length - 100);
   }
   
@@ -46,7 +45,6 @@ export const reduceLowPriorityImageQuality = (dataURI) => {
   
   // For now, we'll just trim the data URI if it's very long to simulate reduction
   if (dataURI.length > 300000) { // Over ~300KB
-    console.log("Reducing low priority image size");
     return dataURI.substring(0, 300000) + dataURI.substring(dataURI.length - 100);
   }
   
@@ -68,7 +66,7 @@ export const handleStorageQuotaError = async (error, key, data) => {
       const lowerQualityData = reduceLowPriorityImageQuality(data);
       try {
         await storeImage(key, lowerQualityData);
-        console.log(`Saved reduced quality version of ${key}`);
+        
         return true;
       } catch (innerError) {
         console.error(`Failed to save reduced quality image for ${key}:`, innerError);
@@ -84,7 +82,7 @@ export const handleStorageQuotaError = async (error, key, data) => {
     const lowerQualityData = reduceHighPriorityImageQuality(data);
     try {
       await storeImage(key, lowerQualityData);
-      console.log(`Saved reduced quality character illustration`);
+      
       return true;
     } catch (innerError) {
       console.error(`Failed to save reduced quality character:`, innerError);
@@ -97,7 +95,6 @@ export const handleStorageQuotaError = async (error, key, data) => {
     const lowerQualityData = reduceHighPriorityImageQuality(data);
     try {
       await storeImage(key, lowerQualityData);
-      console.log(`Saved reduced quality character map`);
       return true;
     } catch (innerError) {
       console.error(`Failed to save reduced quality character map:`, innerError);

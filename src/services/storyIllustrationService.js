@@ -34,7 +34,10 @@ const createStoryPagePrompt = (stanza, storyDetails, pageNumber) => {
   The theme of the whole story is ${storyTheme}, and the child likes ${childLikes}, which should be used for reference if the stanza content is nuanced or unclear.
   
   The entire text from the stanza must be included in the illustration. The text should start at the top of the 
-  image and blend into the scene. I've attached a reference image from another cartoon as an example of how the text should be placed.
+  image and blend into the scene. 
+  
+  I've attached a reference image from another, totally different cartoon as an example of how the text should be placed. 
+  Do NOT include the dragon or characters from that image, as it's just a reference for text placement. 
   
   Make sure the all the characters are clearly recognizable and consistent with the reference image.`;
 };
@@ -90,7 +93,6 @@ const generateSinglePageIllustration = async (
   pageNumber
 ) => {
   const prompt = createStoryPagePrompt(stanza, storyDetails, pageNumber);
-  console.log("prompt", prompt);
   const url = "https://api.openai.com/v1/images/edits";
 
   // Extract base64 data from the URI by removing the prefix
@@ -200,9 +202,6 @@ export const generateStoryIllustrations = async (
           if (onProgressUpdate) {
             onProgressUpdate(pageNumber, dataUri);
           }
-
-          // Log progress
-          console.log(`Generated illustration for page ${pageNumber}`);
 
           // This task is done
           activeTasks--;
