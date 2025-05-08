@@ -8,74 +8,101 @@ import {
   getTextExampleImage,
   base64ToBlob,
 } from "../utils";
+import { fakeBase64 } from "../utils/base64string";
 
 /**
  * Creates prompt for story page illustration
  * @param {string} stanza - Text to include in the illustrationw
  * @param {Object} storyDetails - Story details including style preferences
  * @param {number} pageNumber - Page number (1-12)
+ * @param {boolean} isFirstPage - Whether this is the first page being generated
  * @returns {string} - Prompt for the image generation
  */
-const createStoryPagePrompt = (stanza, storyDetails, pageNumber) => {
+const createStoryPagePrompt = (
+  stanza,
+  storyDetails,
+  pageNumber,
+  isFirstPage
+) => {
   const style = storyDetails.cartoonStyle || "cartoon";
   const styleDesc = getStyleDescription(style);
   const storyTheme = storyDetails.storyTheme || "adventure";
   const childLikes = storyDetails.childLikes || "toys";
 
-  return `Create a ${style} style (${styleDesc}) storybook illustration for a children's story. 
-  I've attached a character map reference with all the characters in a story, and your stanza is only one page of the story. 
+  let prompt = `Create a ${style} style (${styleDesc}) storybook illustration for a children's story. 
+  I've attached a character map reference with all the characters in a story`;
 
-  Instead of including all the characters in the character map, only include characters that are explicity mentioned in the stanza. 
+  if (isFirstPage) {
+    prompt += `, and a reference image showing how text should be placed in the illustration. Do NOT include any elements from the reference image (like the dragon) as it's just for text placement guidance.`;
+  } else {
+    prompt += `, and the previous page's illustration to maintain consistency in style, character appearance, and text placement.`;
+  }
+
+  prompt += `\n\nInstead of including all the characters in the character map, only include characters that are explicity mentioned in the stanza.
 
   Scene description: Illustrate the following stanza for page ${pageNumber}: ###${stanza}###
   
-  The scene and layout should be colorful, engaging, and appropriate for a children's book. 
-  
-  The theme of the whole story is ${storyTheme}, and the child likes ${childLikes}, which should be used for reference if the stanza content is nuanced or unclear.
+  The scene and layout should be vibrant, clear/unhazy, engaging, and appropriate for a children's book. 
   
   The entire text from the stanza must be included in the illustration. The text should start at the top of the 
-  image and blend into the scene. 
-  
-  I've attached a reference image from another, totally different cartoon as an example of how the text should be placed. 
-  Do NOT include the dragon or characters from that image, as it's just a reference for text placement. 
-  
-  Make sure the all the characters are clearly recognizable and consistent with the reference image.`;
+  image and blend into the scene, as you can see in the ${
+    isFirstPage ? "reference image" : "previous page's illustration"
+  }.`;
+
+  return prompt;
 };
 
 /**
- * Handles the actual API request and response processing
+ * Handles the actual API request and response processing with retry logic
  * @param {string} url - The API endpoint URL
  * @param {object} options - The options for the fetch call (method, headers, body)
+ * @param {number} maxRetries - Maximum number of retry attempts
+ * @param {number} retryDelay - Delay between retries in milliseconds
  * @returns {Promise<string>} - The generated image as a base64 data URI
  */
-const makeApiCall = async (url, options) => {
-  const response = await fetch(url, options);
+const makeApiCall = async (url, options, maxRetries = 3, retryDelay = 3000) => {
+  let lastError;
 
-  if (!response.ok) {
-    let errorData;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      errorData = await response.json();
-    } catch (e) {
-      errorData = { error: { message: response.statusText } };
+      const response = await fetch(url, options);
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: { message: response.statusText } };
+        }
+        throw new Error(
+          `API request failed with status ${response.status}: ${
+            errorData.error?.message || "Unknown error"
+          }`
+        );
+      }
+
+      const data = await response.json();
+
+      if (!data || !data.data || !data.data[0] || !data.data[0].b64_json) {
+        throw new Error(
+          "No image data received from API or invalid structure."
+        );
+      }
+
+      const image_base64 = data.data[0].b64_json;
+      const dataUri = `data:image/png;base64,${image_base64}`;
+      return dataUri;
+    } catch (error) {
+      lastError = error;
+      console.warn(`Attempt ${attempt} failed:`, error.message);
+
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      }
     }
-    console.error("API Error:", errorData);
-    throw new Error(
-      `API request failed to ${url} with status ${response.status}: ${
-        errorData.error?.message || "Unknown error"
-      }`
-    );
   }
 
-  const data = await response.json();
-
-  if (!data || !data.data || !data.data[0] || !data.data[0].b64_json) {
-    console.error("Invalid API response structure:", data);
-    throw new Error("No image data received from API or invalid structure.");
-  }
-
-  const image_base64 = data.data[0].b64_json;
-  const dataUri = `data:image/png;base64,${image_base64}`;
-  return dataUri;
+  throw lastError;
 };
 
 /**
@@ -84,15 +111,23 @@ const makeApiCall = async (url, options) => {
  * @param {string} characterImageUri - Base64 data URI of character illustration
  * @param {Object} storyDetails - Story details including style preferences
  * @param {number} pageNumber - Page number (1-12)
+ * @param {string} previousPageUri - Base64 data URI of previous page's illustration (null for first page)
  * @returns {Promise<string>} - The generated image as a base64 data URI
  */
 const generateSinglePageIllustration = async (
   stanza,
   characterMapUri,
   storyDetails,
-  pageNumber
+  pageNumber,
+  previousPageUri = null
 ) => {
-  const prompt = createStoryPagePrompt(stanza, storyDetails, pageNumber);
+  const isFirstPage = !previousPageUri;
+  const prompt = createStoryPagePrompt(
+    stanza,
+    storyDetails,
+    pageNumber,
+    isFirstPage
+  );
   const url = "https://api.openai.com/v1/images/edits";
 
   // Extract base64 data from the URI by removing the prefix
@@ -110,10 +145,25 @@ const generateSinglePageIllustration = async (
 
   const characterMapImage = base64ToBlob(characterMapBase64, "image/png");
   const formData = new FormData();
-  const imageFetch = await fetch(
-    getTextExampleImage(storyDetails.cartoonStyle)
-  );
-  const referenceImageBlob = await imageFetch.blob();
+
+  // Add character map as first image
+  formData.append("image[]", characterMapImage, "character_map.png");
+
+  // For first page, add reference image. For subsequent pages, add previous page
+  if (isFirstPage) {
+    const imageFetch = await fetch(
+      getTextExampleImage(storyDetails.cartoonStyle)
+    );
+    const referenceImageBlob = await imageFetch.blob();
+    formData.append("image[]", referenceImageBlob, "reference_image.png");
+  } else {
+    const previousPageBase64 = previousPageUri.replace(
+      /^data:image\/\w+;base64,/,
+      ""
+    );
+    const previousPageImage = base64ToBlob(previousPageBase64, "image/png");
+    formData.append("image[]", previousPageImage, "previous_page.png");
+  }
 
   // Structure for the JSON payload
   const requestBody = {
@@ -121,12 +171,8 @@ const generateSinglePageIllustration = async (
     prompt: prompt,
     n: 1,
     size: "1024x1024",
-    quality: "low",
+    quality: "high",
   };
-
-  // Add files to formData using array syntax
-  formData.append("image[]", characterMapImage, "character_map.png");
-  formData.append("image[]", referenceImageBlob, "reference_image.png");
 
   // Add JSON payload as a string
   Object.entries(requestBody).forEach(([key, value]) => {
@@ -145,18 +191,20 @@ const generateSinglePageIllustration = async (
 };
 
 /**
- * Generate all 12 story page illustrations concurrently
+ * Generate all 12 story page illustrations sequentially
  * @param {Array<string>} stanzas - Array of 12 text stanzas for the story
  * @param {string} characterImageUri - Base64 data URI of character illustration
  * @param {Object} storyDetails - Story details including style preferences
  * @param {Function} onProgressUpdate - Callback for progress updates (pageNumber, dataUri)
- * @returns {Promise<Array<string>>} - Array of 12 generated images as base64 data URIs
+ * @param {Function} onError - Callback for error handling (pageNumber, error)
+ * @returns {Promise<{results: Array<string|null>, failedPages: Array<{pageNumber: number, error: Error}>>}
  */
 export const generateStoryIllustrations = async (
   stanzas,
   characterMapUri,
   storyDetails,
-  onProgressUpdate = null
+  onProgressUpdate = null,
+  onError = null
 ) => {
   if (!stanzas || !Array.isArray(stanzas) || stanzas.length !== 12) {
     throw new Error("Invalid stanzas: must provide exactly 12 stanzas.");
@@ -168,69 +216,72 @@ export const generateStoryIllustrations = async (
     );
   }
 
-  // Use concurrency limit to prevent overwhelming the API
-  const concurrencyLimit = 3; // Process 3 requests at a time
   const results = new Array(12).fill(null);
-  let activeTasks = 0;
-  let nextPageToProcess = 0;
+  const failedPages = [];
 
-  // Create a promise that will resolve when all pages are generated
-  return new Promise((resolve, reject) => {
-    // Function to start a new task when possible
-    const startNextTask = () => {
-      if (nextPageToProcess >= stanzas.length) {
-        // No more tasks to start
-        return;
-      }
+  if (false) {
+    // Create fake base64 image data URIs for testing
+    const fakeImageUri = fakeBase64;
+    const fakeImageUris = [];
+    for (let i = 0; i < 12; i++) {
+      fakeImageUris.push(fakeImageUri);
+    }
+    // Create array of 12 fake image URIs
+    return {
+      results: fakeImageUris,
+      failedPages: [],
+    };
+  }
 
-      const pageIndex = nextPageToProcess;
-      const pageNumber = pageIndex + 1; // 1-indexed for user display
-      nextPageToProcess++;
-      activeTasks++;
+  // Process pages sequentially
+  for (let pageIndex = 0; pageIndex < stanzas.length; pageIndex++) {
+    const pageNumber = pageIndex + 1; // 1-indexed for user display
+
+    try {
+      // Get previous page's image URI (null for first page)
+      const previousPageUri = pageIndex > 0 ? results[pageIndex - 1] : null;
 
       // Generate this page's illustration
-      generateSinglePageIllustration(
+      const dataUri = await generateSinglePageIllustration(
         stanzas[pageIndex],
         characterMapUri,
         storyDetails,
-        pageNumber
-      )
-        .then((dataUri) => {
-          results[pageIndex] = dataUri;
+        pageNumber,
+        previousPageUri
+      );
 
-          // Notify of progress if callback provided
-          if (onProgressUpdate) {
-            onProgressUpdate(pageNumber, dataUri);
-          }
+      results[pageIndex] = dataUri;
 
-          // This task is done
-          activeTasks--;
+      // Notify of progress if callback provided
+      if (onProgressUpdate) {
+        onProgressUpdate(pageNumber, dataUri);
+      }
 
-          // Check if we're all done
-          if (activeTasks === 0 && nextPageToProcess >= stanzas.length) {
-            resolve(results);
-          } else {
-            if (nextPageToProcess === 6) {
-              setTimeout(() => {
-                startNextTask();
-              }, 60000);
-            } else {
-              // Start another task if available
-              startNextTask();
-            }
-          }
-        })
-        .catch((error) => {
-          console.error(`Error generating page ${pageNumber}:`, error);
-          reject(error);
-        });
-    };
+      // Add delay between requests to respect rate limits
+      // Skip delay for the last page
+      if (pageIndex < stanzas.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    } catch (error) {
+      console.error(`Error generating page ${pageNumber}:`, error);
+      failedPages.push({ pageNumber, error });
 
-    // Start initial batch of tasks up to concurrency limit
-    for (let i = 0; i < Math.min(concurrencyLimit, stanzas.length); i++) {
-      startNextTask();
+      // Notify of error if callback provided
+      if (onError) {
+        onError(pageNumber, error);
+      }
+
+      // Continue with next page instead of stopping
+      continue;
     }
-  });
+  }
+
+  // If all pages failed, throw an error
+  if (failedPages.length === stanzas.length) {
+    throw new Error("Failed to generate any story illustrations");
+  }
+
+  return { results, failedPages };
 };
 
 /**
