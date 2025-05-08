@@ -11,7 +11,7 @@ const DetailsPreview = () => {
 
   useEffect(() => {
     let currentUrl = null;
-    if (childData?.type === "photo" && childData.data instanceof File) {
+    if (childData?.type === "photo" && (childData.data instanceof File || childData.data instanceof Blob)) {
       currentUrl = URL.createObjectURL(childData.data);
       setPhotoUrl(currentUrl);
     } else {

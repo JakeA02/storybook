@@ -40,6 +40,19 @@ export const loadInitialState = () => {
 // Load images from IndexedDB
 export const loadImagesFromIndexedDB = async (setters) => {
   try {
+    // Load user photo
+    const userPhoto = await getImage(IMAGE_KEYS.USER_PHOTO);
+    if (userPhoto) {
+      // Update childData with the loaded photo
+      setters.setChildData(prevData => {
+        // Only update if we need to (no data yet or it was a photo type)
+        if (!prevData || prevData.type === "photo") {
+          return { type: "photo", data: userPhoto };
+        }
+        return prevData;
+      });
+    }
+    
     // Load character illustration
     const characterImg = await getImage(IMAGE_KEYS.CHARACTER);
     if (characterImg) {

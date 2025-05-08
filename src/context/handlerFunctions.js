@@ -1,5 +1,6 @@
 import { STEPS } from './constants';
 import { clearImageStore } from '../utils';
+import { saveUserPhoto } from './imageStorage';
 
 // Function to clear saved data
 export const clearSavedData = async (
@@ -38,8 +39,12 @@ export const clearSavedData = async (
 };
 
 // Handle photo upload submission
-export const handlePhotoSubmit = (photo, setChildData, safelySetStepFn) => {
+export const handlePhotoSubmit = (photo, setChildData, safelySetStepFn, setStorageError) => {
   setChildData({ type: "photo", data: photo });
+  
+  // Save the photo to IndexedDB
+  saveUserPhoto(photo, setStorageError);
+  
   safelySetStepFn(STEPS.DETAILS);
 };
 

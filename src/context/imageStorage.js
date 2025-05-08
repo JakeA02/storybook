@@ -1,20 +1,50 @@
-import { IMAGE_KEYS } from './constants';
-import { storeImage } from '../utils';
-import { handleStorageQuotaError } from './storageHelpers';
+import { IMAGE_KEYS } from "./constants";
+import { storeImage } from "../utils";
+import { handleStorageQuotaError } from "./storageHelpers";
+
+// Save user photo to IndexedDB
+export const saveUserPhoto = async (photoFile, setStorageError) => {
+  if (photoFile) {
+    try {
+      await storeImage(IMAGE_KEYS.USER_PHOTO, photoFile);
+    } catch (error) {
+      console.error("Failed to save user photo:", error);
+
+      // Handle quota exceeded errors
+      if (
+        error.name === "QuotaExceededError" ||
+        error.message.includes("quota") ||
+        error.message.includes("storage")
+      ) {
+        await handleStorageQuotaError(error, IMAGE_KEYS.USER_PHOTO, photoFile);
+        setStorageError(true);
+      }
+    }
+  }
+};
 
 // Save character illustration to IndexedDB
-export const saveCharacterIllustration = async (characterIllustration, setStorageError) => {
+export const saveCharacterIllustration = async (
+  characterIllustration,
+  setStorageError
+) => {
   if (characterIllustration) {
     try {
       await storeImage(IMAGE_KEYS.CHARACTER, characterIllustration);
     } catch (error) {
       console.error("Failed to save character illustration:", error);
-      
+
       // Handle quota exceeded errors
-      if (error.name === 'QuotaExceededError' || 
-          error.message.includes('quota') || 
-          error.message.includes('storage')) {
-        await handleStorageQuotaError(error, IMAGE_KEYS.CHARACTER, characterIllustration);
+      if (
+        error.name === "QuotaExceededError" ||
+        error.message.includes("quota") ||
+        error.message.includes("storage")
+      ) {
+        await handleStorageQuotaError(
+          error,
+          IMAGE_KEYS.CHARACTER,
+          characterIllustration
+        );
         setStorageError(true);
       }
     }
@@ -28,12 +58,18 @@ export const saveCharacterMap = async (characterMap, setStorageError) => {
       await storeImage(IMAGE_KEYS.CHARACTER_MAP, characterMap);
     } catch (error) {
       console.error("Failed to save character map:", error);
-      
+
       // Handle quota exceeded errors
-      if (error.name === 'QuotaExceededError' || 
-          error.message.includes('quota') || 
-          error.message.includes('storage')) {
-        await handleStorageQuotaError(error, IMAGE_KEYS.CHARACTER_MAP, characterMap);
+      if (
+        error.name === "QuotaExceededError" ||
+        error.message.includes("quota") ||
+        error.message.includes("storage")
+      ) {
+        await handleStorageQuotaError(
+          error,
+          IMAGE_KEYS.CHARACTER_MAP,
+          characterMap
+        );
         setStorageError(true);
       }
     }
@@ -41,7 +77,10 @@ export const saveCharacterMap = async (characterMap, setStorageError) => {
 };
 
 // Save book illustrations to IndexedDB
-export const saveBookIllustrations = async (bookIllustrations, setStorageError) => {
+export const saveBookIllustrations = async (
+  bookIllustrations,
+  setStorageError
+) => {
   if (bookIllustrations && bookIllustrations.length > 0) {
     try {
       // Save each illustration with a unique key
@@ -51,12 +90,14 @@ export const saveBookIllustrations = async (bookIllustrations, setStorageError) 
           try {
             await storeImage(key, bookIllustrations[i]);
           } catch (error) {
-            console.error(`Failed to save illustration ${i+1}:`, error);
-            
+            console.error(`Failed to save illustration ${i + 1}:`, error);
+
             // Handle quota exceeded errors
-            if (error.name === 'QuotaExceededError' || 
-                error.message.includes('quota') || 
-                error.message.includes('storage')) {
+            if (
+              error.name === "QuotaExceededError" ||
+              error.message.includes("quota") ||
+              error.message.includes("storage")
+            ) {
               await handleStorageQuotaError(error, key, bookIllustrations[i]);
               setStorageError(true);
               // After first storage error, break the loop to avoid multiple alerts
@@ -67,13 +108,15 @@ export const saveBookIllustrations = async (bookIllustrations, setStorageError) 
       }
     } catch (error) {
       console.error("Failed to save book illustrations:", error);
-      
+
       // Handle quota exceeded errors
-      if (error.name === 'QuotaExceededError' || 
-          error.message.includes('quota') || 
-          error.message.includes('storage')) {
+      if (
+        error.name === "QuotaExceededError" ||
+        error.message.includes("quota") ||
+        error.message.includes("storage")
+      ) {
         setStorageError(true);
       }
     }
   }
-}; 
+};

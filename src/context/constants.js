@@ -18,5 +18,6 @@ export const STORAGE_KEY = "storybook_session_data";
 export const IMAGE_KEYS = {
   CHARACTER: 'character_illustration',
   CHARACTER_MAP: 'character_map',
-  PAGE_PREFIX: 'page_illustration_' 
+  PAGE_PREFIX: 'page_',
+  USER_PHOTO: 'user_photo'
 }; 

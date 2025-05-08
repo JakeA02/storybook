@@ -1,6 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useStory } from "../../context/index";
+import { getImage } from "../../utils";
+import { IMAGE_KEYS } from "../../context/constants";
+import { Loader2 } from "lucide-react";
 
 export default function PhotoUpload() {
   const { handleBack, handlePhotoSubmit } = useStory(); // Assuming these functions are passed correctly
@@ -8,17 +11,49 @@ export default function PhotoUpload() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null); // State for the error message
   const fileInputRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkForUserPhoto = async () => {
+      setIsLoading(true);
+      try {
+        const photo = await getImage(IMAGE_KEYS.USER_PHOTO);
+        if (photo) {
+          setPhoto(photo);
+          const reader = new FileReader();
+          reader.onload = () => {
+            setPreviewUrl(reader.result);
+            setIsLoading(false);
+          };
+          reader.onerror = () => {
+            setErrorMessage("Error loading saved photo");
+            setIsLoading(false);
+          };
+          reader.readAsDataURL(photo);
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error checking for user photo:", error);
+        setErrorMessage("Error checking for saved photo");
+        setIsLoading(false);
+      }
+    };
+    checkForUserPhoto();
+  }, []);
 
   const processFile = (file) => {
     if (file && file.type.startsWith("image/")) {
-      setErrorMessage(null); // Clear any previous errors
+      setIsLoading(true);
+      setErrorMessage(null);
       setPhoto(file);
-      setPreviewUrl(null); // Reset preview while loading new one
+      setPreviewUrl(null);
 
       const reader = new FileReader();
 
       reader.onload = () => {
         setPreviewUrl(reader.result);
+        setIsLoading(false); // Set loading to false when reading is done
       };
 
       reader.onerror = () => {
@@ -29,17 +64,18 @@ export default function PhotoUpload() {
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
+        setIsLoading(false); // Set loading to false on error as well
       };
 
       reader.readAsDataURL(file);
     } else if (file) {
-      // Handle non-image files if needed, or provide feedback
       setErrorMessage("Please select an image file (JPG, PNG, etc.).");
       setPreviewUrl(null);
       setPhoto(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+      setIsLoading(false); // Keep this here for immediate feedback on invalid file type
     }
   };
 
@@ -109,7 +145,11 @@ export default function PhotoUpload() {
         onDrop={handleDrop}
         onClick={!previewUrl ? triggerFileInput : handlePreviewClick} // Only trigger empty area click if no preview, else use preview click handler
       >
-        {previewUrl ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : previewUrl ? (
           <div className="preview-container">
             <img
               src={previewUrl}
@@ -124,7 +164,6 @@ export default function PhotoUpload() {
         ) : (
           <div className="upload-placeholder">
             <div className="mb-4 inline-block">
-              {" "}
               {/* Wrap Image for centering */}
               <Image
                 src="/images/upload-cloud.svg" // Ensure this path is correct
@@ -136,9 +175,12 @@ export default function PhotoUpload() {
             </div>
             <p className="text-muted mt-2">Drag & drop a photo here</p>
             <p className="text-muted">or click to browse</p>
-            <p className="text-xs text-muted mt-2">Supports JPG, PNG files</p>
+            <p className="text-xs text-muted mt-2">
+              Supports JPG, PNG files
+            </p>
           </div>
         )}
+
         <input
           type="file"
           ref={fileInputRef}

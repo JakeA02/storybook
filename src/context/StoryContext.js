@@ -62,7 +62,8 @@ export function StoryProvider({ children }) {
       setCharacterMap,
       setBookIllustrations,
       setImagesLoaded,
-      setStorageError
+      setStorageError,
+      setChildData
     };
     
     loadImagesFromIndexedDB(setters);
@@ -169,7 +170,7 @@ export function StoryProvider({ children }) {
 
   // Handle photo upload submission
   const handlePhotoSubmit = (photo) => {
-    handlePhotoSubmitHelper(photo, setChildData, safelySetStep);
+    handlePhotoSubmitHelper(photo, setChildData, safelySetStep, setStorageError);
   };
 
   // Handle form submission
