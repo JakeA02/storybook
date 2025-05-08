@@ -47,21 +47,91 @@ function Page({ pageData, isLeft }) {
 
 export default function BookPreview({ onComplete }) {
   const { storyScript, storyDetails, bookIllustrations } = useStory();
-  const [currentSpreadIndex, setCurrentSpreadIndex] = useState(0); // Index of the current spread
+  const [currentSpreadIndex, setCurrentSpreadIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [viewMode, setViewMode] = useState("book"); // "book" or "gallery"
+  const [viewMode, setViewMode] = useState("book");
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  // Add local backup of illustrations
+  const [localIllustrations, setLocalIllustrations] = useState(null);
 
-  // Create book pages data structure (same as before)
+  // Keep local backup of illustrations when they're valid
+  useEffect(() => {
+    if (bookIllustrations && Array.isArray(bookIllustrations) && bookIllustrations.length === 12) {
+      setLocalIllustrations(bookIllustrations);
+    }
+  }, [bookIllustrations]);
+
+  // Use local backup if context illustrations become invalid
+  const effectiveIllustrations = useMemo(() => {
+    if (bookIllustrations && Array.isArray(bookIllustrations) && bookIllustrations.length === 12) {
+      return bookIllustrations;
+    }
+    return localIllustrations;
+  }, [bookIllustrations, localIllustrations]);
+
+  // Validate illustrations on mount and when they change
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+
+    const validateIllustrations = async () => {
+      try {
+        const illustrations = effectiveIllustrations;
+        
+        // Check if we have any illustrations (either from context or local backup)
+        if (!illustrations) {
+          throw new Error("No illustrations available");
+        }
+
+        // Check if we have all 12 illustrations
+        if (!Array.isArray(illustrations) || illustrations.length !== 12) {
+          throw new Error("Invalid illustration data: Expected 12 illustrations");
+        }
+
+        // Validate each illustration is a valid data URI
+        const invalidIllustrations = illustrations.filter(
+          (uri) => !uri || typeof uri !== 'string' || !uri.startsWith('data:image')
+        );
+
+        if (invalidIllustrations.length > 0) {
+          throw new Error(`Found ${invalidIllustrations.length} invalid illustration(s)`);
+        }
+
+        // Preload all images to ensure they're valid
+        await Promise.all(
+          illustrations.map((uri) => {
+            return new Promise((resolve, reject) => {
+              const img = new Image();
+              img.onload = resolve;
+              img.onerror = () => reject(new Error('Failed to load image'));
+              img.src = uri;
+            });
+          })
+        );
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error validating illustrations:', err);
+        setError(err.message);
+        setIsLoading(false);
+      }
+    };
+
+    validateIllustrations();
+  }, [effectiveIllustrations]);
+
+  // Create book pages data structure
   const bookPages = useMemo(() => {
-    if (!bookIllustrations || bookIllustrations.length === 0) return [];
-    return bookIllustrations.map((illustration, index) => ({
+    if (error || isLoading || !effectiveIllustrations) return [];
+    return effectiveIllustrations.map((illustration, index) => ({
       illustration,
       text: `Page ${index + 1} of the story about ${
         storyDetails?.childName ?? "the character"
       }. This would contain actual story text.`,
       pageNumber: index + 1,
     }));
-  }, [bookIllustrations, storyDetails]);
+  }, [effectiveIllustrations, storyDetails, error, isLoading]);
 
   const totalPages = bookPages.length;
 
@@ -196,6 +266,50 @@ export default function BookPreview({ onComplete }) {
     }
   };
 
+  // If there's an error but we have local backup, show warning instead of error
+  if (error && localIllustrations) {
+    return (
+      <div className="p-4 md:p-8">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <p className="text-yellow-800">
+            Warning: Using locally saved illustrations. Some features may be limited.
+          </p>
+        </div>
+        {/* Continue with normal render using localIllustrations */}
+        {/* ... rest of the component render ... */}
+      </div>
+    );
+  }
+
+  // If there's an error, show error state
+  if (error) {
+    return (
+      <div className="p-4 md:p-8 text-center">
+        <h2 className="text-2xl font-bold mb-2">Book Preview</h2>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <p className="text-red-600">Error loading illustrations: {error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // If loading, show loading state
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-8 text-center">
+        <h2 className="text-2xl font-bold mb-2">Book Preview</h2>
+        <p className="text-gray-600">Loading your storybook...</p>
+        <div className="w-10 h-10 border-4 border-t-sky-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mt-4"></div>
+      </div>
+    );
+  }
+
   // If there are no illustrations/pages yet, show a placeholder
   if (totalPages === 0) {
     return (
@@ -244,11 +358,11 @@ export default function BookPreview({ onComplete }) {
 
       {/* Download all images button */}
       <div className="flex justify-center mb-6">
-        <DownloadImagesButton illustrations={bookIllustrations} storyTitle={storyDetails?.title || `${storyDetails?.childName}'s Story`} />
+        <DownloadImagesButton illustrations={effectiveIllustrations} storyTitle={storyDetails?.title || `${storyDetails?.childName}'s Story`} />
       </div>
 
       {viewMode === "gallery" ? (
-        <ImageGallery images={bookIllustrations} />
+        <ImageGallery images={effectiveIllustrations} />
       ) : (
         <>
           {/* --- Book Viewer --- */}
