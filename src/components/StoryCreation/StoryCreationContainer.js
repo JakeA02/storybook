@@ -10,6 +10,7 @@ import BookPreview from "./BookPreview";
 import Checkout from "./Checkout";
 import { useState, useEffect, useRef } from "react";
 import "../../styles/session.css";
+import ErrorBoundary from '../ErrorBoundary';
 
 // No need to define STEPS here, use from StoryContext
 // Define step display names for the progress indicator
@@ -408,7 +409,11 @@ export default function StoryCreationContainer() {
       case STEPS.COMPILE:
         return <BookCompilation onComplete={handleCompileCompleteWrapper} />;
       case STEPS.PREVIEW:
-        return <BookPreview onComplete={handlePreviewCompleteWrapper} />;
+        return (
+          <ErrorBoundary>
+            <BookPreview onComplete={handlePreviewCompleteWrapper} />
+          </ErrorBoundary>
+        );
       case STEPS.CHECKOUT:
         return <Checkout />;
       default:
