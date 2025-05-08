@@ -55,6 +55,9 @@ export function StoryProvider({ children }) {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [storageError, setStorageError] = useState(initialState.storageError || false);
 
+  // Add recovery attempt state
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
+
   // Load images from IndexedDB on initial render
   useEffect(() => {
     const setters = {
@@ -142,6 +145,41 @@ export function StoryProvider({ children }) {
     }
   }, [step, childData, storyDetails, storyScript, characterIllustration, bookIllustrations, compiledBook]);
 
+  // Monitor bookIllustrations for validity and attempt recovery if needed
+  useEffect(() => {
+    const attemptRecovery = async () => {
+      // Only attempt recovery once
+      if (recoveryAttempted) return;
+      
+      // Check if illustrations are invalid but we previously had them
+      if ((!bookIllustrations || !Array.isArray(bookIllustrations) || bookIllustrations.length !== 12) && 
+          step === STEPS.PREVIEW) {
+        console.log("Attempting to recover illustrations from storage...");
+        setRecoveryAttempted(true);
+        
+        try {
+          // Attempt to reload just the book illustrations
+          const setters = {
+            setBookIllustrations,
+            setImagesLoaded: () => {},  // No-op since we're already loaded
+            setStorageError,
+            setCharacterIllustration: () => {},
+            setCharacterMap: () => {},
+            setChildData: () => {}
+          };
+          
+          await loadImagesFromIndexedDB(setters);
+          console.log("Successfully recovered illustrations from storage");
+        } catch (error) {
+          console.error("Failed to recover illustrations:", error);
+          setStorageError(true);
+        }
+      }
+    };
+
+    attemptRecovery();
+  }, [bookIllustrations, step, recoveryAttempted]);
+
   // Safe transition between steps with data validation and history tracking
   const safelySetStep = (nextStep) => {
     safelySetStepHelper(nextStep, setStep, setIsTransitioning, history, setHistory);
@@ -208,6 +246,27 @@ export function StoryProvider({ children }) {
 
   // Handle book compilation completion
   const handleCompileComplete = (illustrations) => {
+    // Validate illustrations before saving to context
+    if (!illustrations || !Array.isArray(illustrations) || illustrations.length !== 12) {
+      throw new Error("Invalid illustrations data received from compilation");
+    }
+
+    // Validate each illustration
+    const invalidIllustrations = illustrations.filter(
+      (uri) => !uri || typeof uri !== 'string' || !uri.startsWith('data:image')
+    );
+
+    if (invalidIllustrations.length > 0) {
+      throw new Error(`Received ${invalidIllustrations.length} invalid illustration(s) from compilation`);
+    }
+
+    // Save illustrations to storage
+    saveBookIllustrations(illustrations, setStorageError).catch(error => {
+      console.error("Failed to save illustrations:", error);
+      setStorageError(true);
+    });
+
+    // Update context and proceed to next step
     return handleCompileCompleteHelper(
       illustrations, 
       setBookIllustrations, 
