@@ -136,7 +136,7 @@ export default function BookCompilation({ onComplete }) {
       setGeneratingCharacterMap(false);
       handleCharacterMapComplete(characterMap);
 
-      const generatedIllustrations = await generateStoryIllustrations(
+      const response = await generateStoryIllustrations(
         stanzas,
         characterMap,
         storyDetails,
@@ -151,14 +151,49 @@ export default function BookCompilation({ onComplete }) {
         }
       );
 
+      // Extract illustrations array from response
+      const generatedIllustrations = response.results || response;
+
+      // Validate illustrations before completing
+      if (
+        !generatedIllustrations ||
+        !Array.isArray(generatedIllustrations) ||
+        generatedIllustrations.length !== 12
+      ) {
+        console.log(
+          !generatedIllustrations,
+          !Array.isArray(generatedIllustrations),
+          generatedIllustrations.length !== 12
+        );
+        throw new Error(
+          "Failed to generate all illustrations. Expected 12 illustrations."
+        );
+      }
+
+      // Validate each illustration is a valid data URI
+      const invalidIllustrations = generatedIllustrations.filter(
+        (uri) =>
+          !uri || typeof uri !== "string" || !uri.startsWith("data:image")
+      );
+
+      if (invalidIllustrations.length > 0) {
+        throw new Error(
+          `Generated ${invalidIllustrations.length} invalid illustration(s)`
+        );
+      }
+
+      // Set final illustrations
       setIllustrations(generatedIllustrations);
 
       // Call the onComplete handler with the generated illustrations
       onComplete(generatedIllustrations);
     } catch (error) {
       console.error("Error generating illustrations:", error);
-      alert("There was an error generating illustrations. Please try again.");
+      alert(
+        `Error generating illustrations: ${error.message}. Please try again.`
+      );
       setGeneratingCharacterMap(false);
+      setIllustrations([]); // Clear any partial results
     } finally {
       setIsGenerating(false);
     }
