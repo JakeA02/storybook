@@ -26,8 +26,6 @@ const createStoryPagePrompt = (
 ) => {
   const style = storyDetails.cartoonStyle || "cartoon";
   const styleDesc = getStyleDescription(style);
-  const storyTheme = storyDetails.storyTheme || "adventure";
-  const childLikes = storyDetails.childLikes || "toys";
 
   let prompt = `Create a ${style} style (${styleDesc}) storybook illustration for a children's story. 
   I've attached a character map reference with all the characters in a story`;
