@@ -14,33 +14,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-sky-400 flex flex-col items-center justify-center p-8 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-10 left-10 animate-float-slow">
-        <Image
-          src="/images/cloud.svg"
-          width={80}
-          height={40}
-          alt="Decorative cloud"
-        />
-      </div>
-      <div className="absolute bottom-10 right-16 animate-float">
-        <Image
-          src="/images/star.svg"
-          width={50}
-          height={50}
-          alt="Decorative star"
-        />
-      </div>
-      <div className="absolute top-1/4 right-10 animate-float-delay">
-        <Image
-          src="/images/moon.svg"
-          width={60}
-          height={60}
-          alt="Decorative moon"
-        />
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-b from-slate-200 via-sky-400 to-indigo-400 flex flex-col items-center justify-center p-8 relative overflow-hidden">
       {!isCreatingStory ? (
         <main className="card max-w-3xl w-full text-center z-10 border-dashed border-2 border-rose-400">
           <div className="mb-6">
@@ -56,7 +30,7 @@ export default function Home() {
             Once Upon a Time...
           </h1>
           <p className="text-xl mb-6 font-story">
-            Create magical, personalized storybooks that will delight!
+            Create magical storybooks with your child as the main character!
           </p>
           <p className="text-md mb-8 text-gray-500 italic">
             Turn your child into the hero of their very own story in minutes.
